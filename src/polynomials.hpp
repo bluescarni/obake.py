@@ -1,0 +1,175 @@
+#ifndef OBAKE_PY_POLYNOMIALS_HPP
+#define OBAKE_PY_POLYNOMIALS_HPP
+
+#include <iterator>
+#include <string>
+#include <utility>
+
+#include <boost/hana/for_each.hpp>
+#include <boost/hana/tuple.hpp>
+
+#include <mp++/config.hpp>
+#include <mp++/integer.hpp>
+#include <mp++/rational.hpp>
+
+#if defined(MPPP_WITH_MPFR)
+
+#include <mp++/real.hpp>
+
+#endif
+
+#if defined(MPPP_WITH_QUADMATH)
+
+#include <mp++/real128.hpp>
+
+#endif
+
+#include <obake/math/degree.hpp>
+#include <obake/math/pow.hpp>
+#include <obake/math/trim.hpp>
+#include <obake/polynomials/d_packed_monomial.hpp>
+#include <obake/polynomials/packed_monomial.hpp>
+#include <obake/polynomials/polynomial.hpp>
+#include <obake/series.hpp>
+#include <obake/type_name.hpp>
+
+#include <pybind11/operators.h>
+#include <pybind11/pybind11.h>
+
+#include "type_system.hpp"
+#include "utils.hpp"
+
+namespace obake_py
+{
+
+namespace hana = ::boost::hana;
+namespace py = ::pybind11;
+
+inline constexpr auto poly_key_types
+    = hana::tuple_t<::obake::packed_monomial<unsigned long long>, ::obake::d_packed_monomial<unsigned long long, 8>>;
+
+inline constexpr auto poly_cf_types = hana::tuple_t<double, ::mppp::integer<1>, ::mppp::rational<1>
+#if defined(MPPP_WITH_QUADMATH)
+                                                    ,
+                                                    ::mppp::real128
+#endif
+#if defined(MPPP_WITH_MPFR)
+                                                    ,
+                                                    ::mppp::real
+#endif
+                                                    >;
+
+inline constexpr auto poly_interop_types = poly_cf_types;
+
+template <typename K, typename C>
+inline void expose_polynomial(py::module &m)
+{
+    using p_type = ::obake::polynomial<K, C>;
+
+    py::class_<p_type> class_inst(m, ("_exposed_type_" + ::std::to_string(exposed_types_counter++)).c_str());
+    // Default constructor.
+    class_inst.def(py::init<>());
+    // Add a static readonly string to the class type
+    // which represents the corresponding C++ type.
+    class_inst.def_property_readonly_static("cpp_type", [](py::object) { return ::obake::type_name<p_type>(); });
+    // Special methods.
+    class_inst.def("__repr__", &repr_ostr<p_type>);
+    class_inst.def("__len__", &p_type::size);
+    class_inst.def("__copy__", &generic_copy_wrapper<p_type>);
+    class_inst.def("__deepcopy__", &generic_deepcopy_wrapper<p_type>);
+
+    // Arithmetics vs self.
+    class_inst.def(py::self + py::self);
+    class_inst.def(py::self += py::self);
+    class_inst.def(py::self - py::self);
+    class_inst.def(py::self -= py::self);
+    class_inst.def(py::self * py::self);
+    class_inst.def(py::self *= py::self);
+
+    // Arithmetics vs the interoperable types.
+    hana::for_each(poly_interop_types, [&class_inst](auto t) {
+        using cur_t = typename decltype(t)::type;
+
+        class_inst.def(py::init<const cur_t &>());
+
+        class_inst.def(py::self + cur_t{});
+        class_inst.def(cur_t{} + py::self);
+        class_inst.def(py::self += cur_t{});
+
+        class_inst.def(py::self - cur_t{});
+        class_inst.def(cur_t{} - py::self);
+        class_inst.def(py::self -= cur_t{});
+
+        class_inst.def(py::self * cur_t{});
+        class_inst.def(cur_t{} * py::self);
+        class_inst.def(py::self *= cur_t{});
+
+        class_inst.def(py::self / cur_t{});
+        class_inst.def(py::self /= cur_t{});
+
+        class_inst.def("__pow__", [](const p_type &p, const cur_t &x) { return ::obake::pow(p, x); });
+    });
+
+    // Constructors from polynomials with different coefficients
+    // (but same key).
+    hana::for_each(poly_cf_types, [&class_inst](auto t) {
+        using cur_cf_t = typename decltype(t)::type;
+
+        if constexpr (!::std::is_same_v<cur_cf_t, C>) {
+            // NOTE: skip the case cur_cf_t == C (that would be
+            // a copy constructor).
+            class_inst.def(py::init<const ::obake::polynomial<K, cur_cf_t> &>());
+        }
+    });
+
+    // Degree.
+    m.def("degree", [](const p_type &p) { return ::obake::degree(p); });
+    m.def("p_degree",
+          [](const p_type &p, const py::iterable &s) { return ::obake::p_degree(p, py_object_to_obake_ss(s)); });
+
+    // Trim.
+    m.def("degree", [](const p_type &p) { return ::obake::trim(p); });
+
+    // Polyomials factory function.
+    m.def("_make_polynomials", [](const p_type &, py::args args) {
+        py::list retval;
+
+        // Special case: no input arguments.
+        if (py::len(args) == 0u) {
+            return retval;
+        }
+
+        auto args_it = ::std::begin(args);
+        const auto args_end = ::std::end(args);
+
+        if (py::isinstance<py::iterable>(*args_it) && !py::isinstance<py::str>(*args_it)) {
+            // If the first argument is a non-string iterable, then
+            // we interpret this as the symbol set argument for make_polynomials().
+            const auto ss = py_object_to_obake_ss(args_it->cast<py::object>());
+            for (++args_it; args_it != args_end; ++args_it) {
+                auto [tmp] = ::obake::make_polynomials<p_type>(ss, args_it->cast<::std::string>());
+                retval.append(::std::move(tmp));
+            }
+        } else {
+            // Otherwise, we use the make_polynomials() overload with all strings.
+            for (; args_it != args_end; ++args_it) {
+                auto [tmp] = ::obake::make_polynomials<p_type>(args_it->cast<::std::string>());
+                retval.append(::std::move(tmp));
+            }
+        }
+
+        return retval;
+    });
+}
+
+void expose_polynomials(py::module &);
+
+void expose_polynomials_double(py::module &);
+void expose_polynomials_integer(py::module &);
+void expose_polynomials_rational(py::module &);
+void expose_polynomials_real128(py::module &);
+void expose_polynomials_real(py::module &);
+
+} // namespace obake_py
+
+#endif

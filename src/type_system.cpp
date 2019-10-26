@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <memory>
 #include <string>
 
@@ -20,7 +21,9 @@ namespace obake_py
 
 namespace py = ::pybind11;
 
+// Global variables initialisation.
 ::std::unique_ptr<py::module> types_submodule_ptr;
+::std::size_t exposed_types_counter = 0;
 
 namespace
 {

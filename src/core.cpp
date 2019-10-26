@@ -23,6 +23,7 @@
 
 #include <pybind11/pybind11.h>
 
+#include "polynomials.hpp"
 #include "type_system.hpp"
 
 namespace py = ::pybind11;
@@ -43,6 +44,24 @@ PYBIND11_MODULE(core, m)
     tg_class.def("__repr__", &obpy::type_generator::repr);
     // tg_class.def("__call__", &obpy::type_generator::operator());
 
+    // Flag the presence of MPFR/quadmath.
+    m.attr("_with_mpfr") =
+#if defined(MPPP_WITH_MPFR)
+        true
+#else
+        false
+#endif
+        ;
+
+    m.attr("_with_quadmath") =
+#if defined(MPPP_WITH_QUADMATH)
+        true
+#else
+        false
+#endif
+        ;
+
+    // Create type generators for a bunch of common types.
     obpy::instantiate_type_generator<double>("double");
     obpy::instantiate_type_generator<::mppp::integer<1>>("integer");
     obpy::instantiate_type_generator<::mppp::rational<1>>("rational");
@@ -55,6 +74,10 @@ PYBIND11_MODULE(core, m)
     obpy::instantiate_type_generator<::obake::packed_monomial<unsigned long long>>("packed_monomial");
     obpy::instantiate_type_generator<::obake::d_packed_monomial<unsigned long long, 8>>("d_packed_monomial");
 
+    // Expose the polynomials.
+    obpy::expose_polynomials(m);
+
+    // Register the cleanup functor.
     py::module::import("atexit").attr("register")(py::cpp_function([]() {
 #if !defined(NDEBUG)
         ::std::cout << "Cleaning up obake.py data." << ::std::endl;

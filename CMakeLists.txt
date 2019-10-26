@@ -137,6 +137,9 @@ endif()
 set (_OBAKE_PY_MIN_OBAKE_VERSION 0.1)
 find_package(obake "${_OBAKE_PY_MIN_OBAKE_VERSION}" REQUIRED)
 
+# Boost (header only).
+find_package(Boost 1.65.0 QUIET REQUIRED)
+
 # Python.
 include(YACMAPythonSetup)
 
@@ -148,13 +151,21 @@ endif()
 # pybind11.
 find_package(pybind11 REQUIRED)
 
+# Core module.
 YACMA_PYTHON_MODULE(core
     src/core.cpp
     src/type_system.cpp
+    src/utils.cpp
+    src/expose_polynomials.cpp
+    src/expose_polynomials_double.cpp
+    src/expose_polynomials_integer.cpp
+    src/expose_polynomials_rational.cpp
+    src/expose_polynomials_real128.cpp
+    src/expose_polynomials_real.cpp
 )
 
 target_link_libraries(core PRIVATE obake::obake)
-target_include_directories(core PRIVATE "${pybind11_INCLUDE_DIR}")
+target_include_directories(core PRIVATE "${pybind11_INCLUDE_DIR}" ${Boost_INCLUDE_DIRS})
 target_compile_definitions(core PRIVATE "${pybind11_DEFINITIONS}")
 target_compile_options(core PRIVATE
     "$<$<CONFIG:DEBUG>:${OBAKE_PY_CXX_FLAGS_DEBUG}>"

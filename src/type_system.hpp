@@ -2,6 +2,7 @@
 #define OBAKE_PY_TYPE_SYSTEM_HPP
 
 #include <cassert>
+#include <cstddef>
 #include <memory>
 #include <string>
 #include <typeindex>
@@ -16,7 +17,11 @@ namespace obake_py
 
 namespace py = ::pybind11;
 
+// The types submodule.
 extern ::std::unique_ptr<py::module> types_submodule_ptr;
+
+// Counter of exposed types, used for naming them.
+extern ::std::size_t exposed_types_counter;
 
 struct type_generator {
     py::object operator()() const;
