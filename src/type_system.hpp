@@ -15,6 +15,7 @@
 #include <string>
 #include <typeindex>
 #include <typeinfo>
+#include <unordered_map>
 
 #include <obake/type_name.hpp>
 
@@ -30,6 +31,12 @@ extern ::std::unique_ptr<py::module> types_submodule_ptr;
 
 // Counter of exposed types, used for naming them.
 extern ::std::size_t exposed_types_counter;
+
+// Map of exposed types: it connects a C++ type
+// (represented as a std::type_index) to a concrete
+// python type (contained into a py::object.)
+using et_map_t = ::std::unordered_map<::std::type_index, py::object>;
+extern et_map_t et_map;
 
 struct type_generator {
     py::object operator()() const;
@@ -57,6 +64,26 @@ inline void instantiate_type_generator(const ::std::string &name)
     }
 
     ts.attr(name.c_str()) = type_generator{::std::type_index(typeid(T))};
+}
+
+// Register into et_map a C++ type that was exposed to Python,
+// recording the corresponding Python type.
+// This will error out if the type has already been registered.
+template <typename T, typename... Args>
+inline void register_exposed_type(const py::class_<T, Args...> &c)
+{
+    ::std::type_index t_idx(typeid(T));
+
+    if (et_map.find(t_idx) != et_map.end()) {
+        ::PyErr_SetString(::PyExc_TypeError, ("the C++ type '" + ::obake::type_name<T>()
+                                              + "' has already been "
+                                                "registered in the type system")
+                                                 .c_str());
+
+        throw py::error_already_set();
+    }
+
+    et_map[t_idx] = c;
 }
 
 } // namespace obake_py

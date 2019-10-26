@@ -82,6 +82,7 @@ inline void expose_polynomial(py::module &m)
     using p_type = ::obake::polynomial<K, C>;
 
     py::class_<p_type> class_inst(m, ("_exposed_type_" + ::std::to_string(exposed_types_counter++)).c_str());
+    register_exposed_type(class_inst);
     // Default constructor.
     class_inst.def(py::init<>());
     // Add a static readonly string to the class type

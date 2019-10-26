@@ -50,7 +50,7 @@ PYBIND11_MODULE(core, m)
     // Expose the type generator class.
     py::class_<obpy::type_generator> tg_class(m, "_type_generator");
     tg_class.def("__repr__", &obpy::type_generator::repr);
-    // tg_class.def("__call__", &obpy::type_generator::operator());
+    tg_class.def("__call__", &obpy::type_generator::operator());
 
     // Flag the presence of MPFR/quadmath.
     m.attr("_with_mpfr") =
@@ -91,5 +91,6 @@ PYBIND11_MODULE(core, m)
         ::std::cout << "Cleaning up obake.py data." << ::std::endl;
 #endif
         obpy::types_submodule_ptr.reset();
+        obpy::et_map.clear();
     }));
 }

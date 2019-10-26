@@ -32,6 +32,7 @@ namespace py = ::pybind11;
 // Global variables initialisation.
 ::std::unique_ptr<py::module> types_submodule_ptr;
 ::std::size_t exposed_types_counter = 0;
+et_map_t et_map;
 
 namespace
 {
@@ -59,9 +60,24 @@ namespace
 
 } // namespace
 
+// Implementation of the type_generator class.
 ::std::string type_generator::repr() const
 {
     return "Type generator for the C++ type '" + demangle_from_typeid(m_t_idx.name()) + "'";
+}
+
+py::object type_generator::operator()() const
+{
+    const auto it = et_map.find(m_t_idx);
+
+    if (it == et_map.end()) {
+        ::PyErr_SetString(::PyExc_TypeError,
+                          ("the type '" + demangle_from_typeid(m_t_idx.name()) + "' has not been registered").c_str());
+
+        throw py::error_already_set();
+    }
+
+    return it->second;
 }
 
 } // namespace obake_py
