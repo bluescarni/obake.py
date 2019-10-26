@@ -69,6 +69,13 @@ inline constexpr auto poly_cf_types = hana::tuple_t<double, ::mppp::integer<1>, 
 
 inline constexpr auto poly_interop_types = poly_cf_types;
 
+#if defined(__clang__)
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wself-assign-overloaded"
+
+#endif
+
 template <typename K, typename C>
 inline void expose_polynomial(py::module &m)
 {
@@ -169,6 +176,12 @@ inline void expose_polynomial(py::module &m)
         return retval;
     });
 }
+
+#if defined(__clang__)
+
+#pragma clang diagnostic pop
+
+#endif
 
 void expose_polynomials(py::module &);
 
