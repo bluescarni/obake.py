@@ -6,9 +6,6 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include <iostream>
-#include <memory>
-
 #include <mp++/config.hpp>
 #include <mp++/extra/pybind11.hpp>
 #include <mp++/integer.hpp>
@@ -44,22 +41,8 @@ PYBIND11_MODULE(core, m)
 
     m.doc() = "The obake core module";
 
-    // Create the types submodule.
-    obpy::types_submodule_ptr = ::std::make_unique<py::module>(m.def_submodule("types", "The types submodule"));
-
-    // Expose the type generator class.
-    py::class_<obpy::type_generator> tg_class(m, "_type_generator");
-    tg_class.def("__repr__", &obpy::type_generator::repr);
-    tg_class.def("__call__", &obpy::type_generator::operator());
-
-    // Expose the type generator template class.
-    py::class_<obpy::type_generator_template> tgt_class(m, "_type_generator_template");
-    tgt_class.def("__getitem__", &obpy::type_generator_template::getitem_t);
-    tgt_class.def("__getitem__", &obpy::type_generator_template::getitem_o);
-    tgt_class.def("__repr__", &obpy::type_generator_template::repr);
-
     // Flag the presence of MPFR/quadmath.
-    m.attr("_with_mpfr") =
+    m.attr("with_mpfr") =
 #if defined(MPPP_WITH_MPFR)
         true
 #else
@@ -67,7 +50,7 @@ PYBIND11_MODULE(core, m)
 #endif
         ;
 
-    m.attr("_with_quadmath") =
+    m.attr("with_quadmath") =
 #if defined(MPPP_WITH_QUADMATH)
         true
 #else
@@ -75,29 +58,32 @@ PYBIND11_MODULE(core, m)
 #endif
         ;
 
-    // Create type generators for a bunch of common types.
-    obpy::instantiate_type_generator<double>("double");
-    obpy::instantiate_type_generator<::mppp::integer<1>>("integer");
-    obpy::instantiate_type_generator<::mppp::rational<1>>("rational");
-#if defined(MPPP_WITH_MPFR)
-    obpy::instantiate_type_generator<::mppp::real>("real");
-#endif
+    // Create the types submodule.
+    auto types_submodule = m.def_submodule("types", "The types submodule");
+
+    // Expose the type tag class.
+    py::class_<obpy::type_tag> ttag_class(m, "_type_tag");
+    ttag_class.def("__repr__", &obpy::type_tag::repr);
+
+    // Expose the type getter class.
+    py::class_<obpy::type_getter> tg_class(m, "_type_getter");
+    tg_class.def("__getitem__", &obpy::type_getter::getitem_t);
+    tg_class.def("__getitem__", &obpy::type_getter::getitem_o);
+    tg_class.def("__repr__", &obpy::type_getter::repr);
+
+    // Instantiate the type tags.
+    obpy::instantiate_type_tag<double>(types_submodule, "double");
+    obpy::instantiate_type_tag<::mppp::integer<1>>(types_submodule, "integer");
+    obpy::instantiate_type_tag<::mppp::rational<1>>(types_submodule, "rational");
 #if defined(MPPP_WITH_QUADMATH)
-    obpy::instantiate_type_generator<::mppp::real128>("real128");
+    obpy::instantiate_type_tag<::mppp::real128>(types_submodule, "real128");
 #endif
-    obpy::instantiate_type_generator<::obake::packed_monomial<unsigned long long>>("packed_monomial");
-    obpy::instantiate_type_generator<::obake::d_packed_monomial<unsigned long long, 8>>("d_packed_monomial");
+#if defined(MPPP_WITH_MPFR)
+    obpy::instantiate_type_tag<::mppp::real>(types_submodule, "real");
+#endif
+    obpy::instantiate_type_tag<::obake::packed_monomial<long long>>(types_submodule, "packed_monomial");
+    obpy::instantiate_type_tag<::obake::d_packed_monomial<long long, 8>>(types_submodule, "d_packed_monomial");
 
     // Expose the polynomials.
     obpy::expose_polynomials(m);
-
-    // Register the cleanup functor.
-    py::module::import("atexit").attr("register")(py::cpp_function([]() {
-#if !defined(NDEBUG)
-        ::std::cout << "Cleaning up obake.py data." << ::std::endl;
-#endif
-        obpy::types_submodule_ptr.reset();
-        obpy::et_map.clear();
-        obpy::ti_map.clear();
-    }));
 }

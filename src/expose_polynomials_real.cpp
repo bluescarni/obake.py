@@ -18,6 +18,7 @@
 #include <pybind11/pybind11.h>
 
 #include "polynomials.hpp"
+#include "type_system.hpp"
 
 namespace obake_py
 {
@@ -25,10 +26,11 @@ namespace obake_py
 namespace py = ::pybind11;
 namespace hana = ::boost::hana;
 
-void expose_polynomials_real([[maybe_unused]] py::module &m)
+void expose_polynomials_real([[maybe_unused]] py::module &m, [[maybe_unused]] type_getter &tg)
 {
 #if defined(MPPP_WITH_MPFR)
-    hana::for_each(poly_key_types, [&m](auto t) { expose_polynomial<typename decltype(t)::type, ::mppp::real>(m); });
+    hana::for_each(poly_key_types,
+                   [&m, &tg](auto t) { expose_polynomial<typename decltype(t)::type, ::mppp::real>(m, tg); });
 #endif
 }
 

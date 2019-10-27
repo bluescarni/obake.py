@@ -8,9 +8,9 @@
 
 #include <cstddef>
 #include <functional>
-#include <memory>
 #include <string>
 #include <typeindex>
+#include <utility>
 #include <vector>
 
 #if defined(__GNUC__) || (defined(__clang__) && !defined(_MSC_VER))
@@ -18,6 +18,7 @@
 // GCC demangle. This is available also for clang, both with libstdc++ and libc++.
 #include <cstdlib>
 #include <cxxabi.h>
+#include <memory>
 
 #endif
 
@@ -35,10 +36,7 @@ namespace obake_py
 namespace py = ::pybind11;
 
 // Global variables initialisation.
-::std::unique_ptr<py::module> types_submodule_ptr;
 ::std::size_t exposed_types_counter = 0;
-et_map_t et_map;
-ti_map_t ti_map;
 
 namespace
 {
@@ -66,50 +64,50 @@ namespace
 
 } // namespace
 
-// Implementation of the type_generator class.
-::std::string type_generator::repr() const
+// Implementation of the type_tag class.
+::std::string type_tag::repr() const
 {
-    return "Type generator for the C++ type '" + demangle_from_typeid(m_t_idx.name()) + "'";
+    return "Type tag for the C++ type '" + demangle_from_typeid(m_t_idx.name()) + "'";
 }
 
-py::object type_generator::operator()() const
+bool operator==(const type_tag &t1, const type_tag &t2)
 {
-    const auto it = et_map.find(m_t_idx);
-
-    if (it == et_map.end()) {
-        ::PyErr_SetString(::PyExc_TypeError,
-                          ("the type '" + demangle_from_typeid(m_t_idx.name()) + "' has not been registered").c_str());
-
-        throw py::error_already_set();
-    }
-
-    return it->second;
+    return t1.m_t_idx == t2.m_t_idx;
 }
 
-// Implementation of the hasher for ti_map_t.
-::std::size_t v_idx_hasher::operator()(const ::std::vector<::std::type_index> &v) const
+// Implementation of the type_getter class.
+::std::size_t type_getter::vtt_hasher::operator()(const ::std::vector<type_tag> &v) const
 {
     ::std::size_t retval = 0;
 
-    for (const auto &t_idx : v) {
-        ::boost::hash_combine(retval, ::std::hash<::std::type_index>{}(t_idx));
+    for (const auto &ttag : v) {
+        ::boost::hash_combine(retval, ::std::hash<::std::type_index>{}(ttag.m_t_idx));
     }
 
     return retval;
 }
 
+type_getter::type_getter(const char *name) : m_name(name) {}
+
+::std::string type_getter::repr() const
+{
+    return "Type getter for the C++ class template '" + m_name + "'";
+}
+
 namespace
 {
 
-// Small utility to convert a vector of type indices to a string representation, only for error reporting purposes.
-::std::string v_t_idx_to_str(const ::std::vector<::std::type_index> &v_t_idx)
+// Small utility to convert a vector of type tags
+// to a string representation, only for error
+// reporting purposes.
+::std::string v_ttag_to_str(const ::std::vector<type_tag> &v)
 {
     ::std::string tv_name = "[";
 
-    for (decltype(v_t_idx.size()) i = 0; i < v_t_idx.size(); ++i) {
-        tv_name += demangle_from_typeid(v_t_idx[i].name());
+    for (decltype(v.size()) i = 0; i < v.size(); ++i) {
+        tv_name += demangle_from_typeid(v[i].m_t_idx.name());
 
-        if (i != v_t_idx.size() - 1u) {
+        if (i != v.size() - 1u) {
             tv_name += ", ";
         }
     }
@@ -121,40 +119,42 @@ namespace
 
 } // namespace
 
-type_generator type_generator_template::getitem_t(const py::tuple &t) const
+void type_getter::add_impl(::std::vector<type_tag> &&v, const py::object &o)
 {
-    if (ti_map.find(m_name) == ti_map.end()) {
-        ::PyErr_SetString(::PyExc_TypeError,
-                          ("no instance of the C++ class template '" + m_name + "' has been registered").c_str());
-
-        throw py::error_already_set();
-    }
-
-    // Convert the tuple of generators to a vector of type idx objects.
-    ::std::vector<::std::type_index> v_t_idx;
-    for (const auto &o : t) {
-        v_t_idx.push_back(o.cast<type_generator>().m_t_idx);
-    }
-
-    const auto it1 = ti_map[m_name].find(v_t_idx);
-    if (it1 == ti_map[m_name].end()) {
-        ::PyErr_SetString(::PyExc_TypeError, ("no instance of the C++ class template '" + m_name
-                                              + "' has been registered with arguments " + v_t_idx_to_str(v_t_idx))
+    if (m_map.find(v) != m_map.end()) {
+        ::PyErr_SetString(::PyExc_TypeError, ("an instance of the C++ class template '" + m_name
+                                              + "' has already been registered with arguments " + v_ttag_to_str(v))
                                                  .c_str());
+
         throw py::error_already_set();
     }
 
-    return type_generator{it1->second};
+    m_map.emplace(::std::move(v), o);
 }
 
-type_generator type_generator_template::getitem_o(const py::object &o) const
+py::object type_getter::getitem_t(const py::tuple &t) const
+{
+    // Convert t to a vector of type tags.
+    ::std::vector<type_tag> v;
+    for (const auto &o : t) {
+        v.push_back(o.cast<type_tag>());
+    }
+
+    const auto it = m_map.find(v);
+    if (it == m_map.end()) {
+        ::PyErr_SetString(::PyExc_TypeError, ("no instance of the C++ class template '" + m_name
+                                              + "' has been registered with arguments " + v_ttag_to_str(v))
+                                                 .c_str());
+
+        throw py::error_already_set();
+    }
+
+    return it->second;
+}
+
+py::object type_getter::getitem_o(const py::object &o) const
 {
     return getitem_t(py::make_tuple(o));
-}
-
-::std::string type_generator_template::repr() const
-{
-    return "Type generator template for the C++ class template '" + m_name + "'";
 }
 
 } // namespace obake_py

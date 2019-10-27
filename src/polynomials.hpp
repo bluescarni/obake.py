@@ -53,13 +53,9 @@ namespace obake_py
 namespace hana = ::boost::hana;
 namespace py = ::pybind11;
 
-// Give a name to the polynomial class template.
-template <>
-inline const ::std::string t_name<::obake::polynomial> = "polynomial";
-
 // The monomial types that will be exposed.
 inline constexpr auto poly_key_types
-    = hana::tuple_t<::obake::packed_monomial<unsigned long long>, ::obake::d_packed_monomial<unsigned long long, 8>>;
+    = hana::tuple_t<::obake::packed_monomial<long long>, ::obake::d_packed_monomial<long long, 8>>;
 
 // The coefficient types that will be exposed.
 inline constexpr auto poly_cf_types = hana::tuple_t<double, ::mppp::integer<1>, ::mppp::rational<1>
@@ -85,14 +81,11 @@ inline constexpr auto poly_interop_types = poly_cf_types;
 
 // Polynomial exposition function.
 template <typename K, typename C>
-inline void expose_polynomial(py::module &m)
+inline void expose_polynomial(py::module &m, type_getter &tg)
 {
     using p_type = ::obake::polynomial<K, C>;
 
     py::class_<p_type> class_inst(m, ("_exposed_type_" + ::std::to_string(exposed_types_counter++)).c_str());
-
-    register_exposed_type(class_inst);
-    register_template_instance<::obake::polynomial, K, C>();
 
     // Default constructor.
     class_inst.def(py::init<>());
@@ -187,6 +180,10 @@ inline void expose_polynomial(py::module &m)
 
         return retval;
     });
+
+    // Add the current polynomial
+    // type to the type getter.
+    tg.add<K, C>(class_inst);
 }
 
 #if defined(__clang__)
@@ -197,11 +194,11 @@ inline void expose_polynomial(py::module &m)
 
 void expose_polynomials(py::module &);
 
-void expose_polynomials_double(py::module &);
-void expose_polynomials_integer(py::module &);
-void expose_polynomials_rational(py::module &);
-void expose_polynomials_real128(py::module &);
-void expose_polynomials_real(py::module &);
+void expose_polynomials_double(py::module &, type_getter &);
+void expose_polynomials_integer(py::module &, type_getter &);
+void expose_polynomials_rational(py::module &, type_getter &);
+void expose_polynomials_real128(py::module &, type_getter &);
+void expose_polynomials_real(py::module &, type_getter &);
 
 } // namespace obake_py
 

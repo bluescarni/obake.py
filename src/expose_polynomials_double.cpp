@@ -13,6 +13,7 @@
 #include <pybind11/pybind11.h>
 
 #include "polynomials.hpp"
+#include "type_system.hpp"
 
 namespace obake_py
 {
@@ -20,9 +21,9 @@ namespace obake_py
 namespace py = ::pybind11;
 namespace hana = ::boost::hana;
 
-void expose_polynomials_double(py::module &m)
+void expose_polynomials_double(py::module &m, type_getter &tg)
 {
-    hana::for_each(poly_key_types, [&m](auto t) { expose_polynomial<typename decltype(t)::type, double>(m); });
+    hana::for_each(poly_key_types, [&m, &tg](auto t) { expose_polynomial<typename decltype(t)::type, double>(m, tg); });
 }
 
 } // namespace obake_py
