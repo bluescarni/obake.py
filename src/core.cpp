@@ -52,6 +52,12 @@ PYBIND11_MODULE(core, m)
     tg_class.def("__repr__", &obpy::type_generator::repr);
     tg_class.def("__call__", &obpy::type_generator::operator());
 
+    // Expose the type generator template class.
+    py::class_<obpy::type_generator_template> tgt_class(m, "_type_generator_template");
+    tgt_class.def("__getitem__", &obpy::type_generator_template::getitem_t);
+    tgt_class.def("__getitem__", &obpy::type_generator_template::getitem_o);
+    tgt_class.def("__repr__", &obpy::type_generator_template::repr);
+
     // Flag the presence of MPFR/quadmath.
     m.attr("_with_mpfr") =
 #if defined(MPPP_WITH_MPFR)
@@ -92,5 +98,6 @@ PYBIND11_MODULE(core, m)
 #endif
         obpy::types_submodule_ptr.reset();
         obpy::et_map.clear();
+        obpy::ti_map.clear();
     }));
 }

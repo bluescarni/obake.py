@@ -8,9 +8,12 @@
 
 #include <mp++/extra/pybind11.hpp>
 
+#include <obake/polynomials/polynomial.hpp>
+
 #include <pybind11/pybind11.h>
 
 #include "polynomials.hpp"
+#include "type_system.hpp"
 
 namespace obake_py
 {
@@ -19,6 +22,8 @@ namespace py = ::pybind11;
 
 void expose_polynomials(py::module &m)
 {
+    instantiate_type_generator_template<::obake::polynomial>("polynomial");
+
     expose_polynomials_double(m);
     expose_polynomials_integer(m);
     expose_polynomials_rational(m);
