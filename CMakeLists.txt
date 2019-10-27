@@ -134,7 +134,7 @@ endif()
 # NOTE: put the minimum version in a variable
 # so that we can re-use it in the config-file package
 # machinery below.
-set (_OBAKE_PY_MIN_OBAKE_VERSION 0.1)
+set (_OBAKE_PY_MIN_OBAKE_VERSION 0.2)
 find_package(obake "${_OBAKE_PY_MIN_OBAKE_VERSION}" REQUIRED)
 
 # Boost (header only).
