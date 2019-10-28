@@ -8,8 +8,6 @@
 
 #include <mp++/extra/pybind11.hpp>
 
-#include <obake/polynomials/polynomial.hpp>
-
 #include <pybind11/pybind11.h>
 
 #include "polynomials.hpp"
@@ -22,13 +20,20 @@ namespace py = ::pybind11;
 
 void expose_polynomials(py::module &m)
 {
-    instantiate_type_generator_template<::obake::polynomial>("polynomial");
+    // Create the polynomial type getter.
+    type_getter tg("polynomial");
 
-    expose_polynomials_double(m);
-    expose_polynomials_integer(m);
-    expose_polynomials_rational(m);
-    expose_polynomials_real128(m);
-    expose_polynomials_real(m);
+    // Invoke the exposition functions
+    // for the various cf types.
+    expose_polynomials_double(m, tg);
+    expose_polynomials_integer(m, tg);
+    expose_polynomials_rational(m, tg);
+    expose_polynomials_real128(m, tg);
+    expose_polynomials_real(m, tg);
+
+    // Add the polynomial type getter to the
+    // python module.
+    m.attr("polynomial") = tg;
 }
 
 } // namespace obake_py
