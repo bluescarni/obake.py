@@ -35,12 +35,12 @@ namespace obake_py
 
 namespace py = ::pybind11;
 
-// Global variables initialisation.
 ::std::size_t exposed_types_counter = 0;
 
 namespace
 {
 
+// Wrapper to demangle a name fetched from typeid.
 ::std::string demangle_from_typeid(const char *s)
 {
 #if defined(__GNUC__) || (defined(__clang__) && !defined(_MSC_VER))
@@ -132,6 +132,7 @@ void type_getter::add_impl(::std::vector<type_tag> &&v, const py::object &o)
     m_map.emplace(::std::move(v), o);
 }
 
+// The two overloads for the [] operator.
 py::object type_getter::getitem_t(const py::tuple &t) const
 {
     // Convert t to a vector of type tags.

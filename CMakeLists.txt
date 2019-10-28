@@ -140,12 +140,12 @@ find_package(obake "${_OBAKE_PY_MIN_OBAKE_VERSION}" REQUIRED)
 # Boost (header only).
 find_package(Boost 1.65.0 QUIET REQUIRED)
 
-# Python.
+# python.
 include(YACMAPythonSetup)
 
-# Python version check.
+# python version check.
 if(${PYTHON_VERSION_MAJOR} LESS 2 OR (${PYTHON_VERSION_MAJOR} EQUAL 2 AND ${PYTHON_VERSION_MINOR} LESS 7))
-    message(FATAL_ERROR "Minimum supported Python version is 2.7.")
+    message(FATAL_ERROR "Minimum supported python version is 2.7.")
 endif()
 
 # pybind11.

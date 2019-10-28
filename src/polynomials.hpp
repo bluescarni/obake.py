@@ -91,7 +91,7 @@ inline void expose_polynomial(py::module &m, type_getter &tg)
     class_inst.def(py::init<>());
     // Add a static readonly string to the class type
     // which represents the corresponding C++ type.
-    class_inst.def_property_readonly_static("cpp_type", [](py::object) { return ::obake::type_name<p_type>(); });
+    class_inst.def_property_readonly_static("cpp_name", [](py::object) { return ::obake::type_name<p_type>(); });
     // Special methods.
     class_inst.def("__repr__", &repr_ostr<p_type>);
     class_inst.def("__len__", &p_type::size);
@@ -106,12 +106,14 @@ inline void expose_polynomial(py::module &m, type_getter &tg)
     class_inst.def(py::self * py::self);
     class_inst.def(py::self *= py::self);
 
-    // Arithmetics vs the interoperable types.
+    // Interact with the interoperable types.
     hana::for_each(poly_interop_types, [&class_inst](auto t) {
         using cur_t = typename decltype(t)::type;
 
+        // Constructor.
         class_inst.def(py::init<const cur_t &>());
 
+        // Arithmetics.
         class_inst.def(py::self + cur_t{});
         class_inst.def(cur_t{} + py::self);
         class_inst.def(py::self += cur_t{});
@@ -127,6 +129,7 @@ inline void expose_polynomial(py::module &m, type_getter &tg)
         class_inst.def(py::self / cur_t{});
         class_inst.def(py::self /= cur_t{});
 
+        // Exponentiation.
         class_inst.def("__pow__", [](const p_type &p, const cur_t &x) { return ::obake::pow(p, x); });
     });
 
