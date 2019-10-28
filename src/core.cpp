@@ -6,6 +6,9 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include <exception>
+#include <stdexcept>
+
 #include <mp++/config.hpp>
 #include <mp++/extra/pybind11.hpp>
 #include <mp++/integer.hpp>
@@ -83,6 +86,19 @@ PYBIND11_MODULE(core, m)
 #endif
     obpy::instantiate_type_tag<::obake::packed_monomial<long long>>(types_submodule, "packed_monomial");
     obpy::instantiate_type_tag<::obake::d_packed_monomial<long long, 8>>(types_submodule, "d_packed_monomial");
+
+    // NOTE: currently pybind11 does not translate
+    // std::overflow_error into OverflowError. Keep an
+    // eye on it if this changes in the future.
+    py::register_exception_translator([](::std::exception_ptr p) {
+        try {
+            if (p) {
+                ::std::rethrow_exception(p);
+            }
+        } catch (const ::std::overflow_error &e) {
+            ::PyErr_SetString(::PyExc_OverflowError, e.what());
+        }
+    });
 
     // Expose the polynomials.
     obpy::expose_polynomials(m);
