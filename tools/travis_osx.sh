@@ -24,7 +24,7 @@ export PATH="$deps_dir/bin:$PATH"
 export CXX=clang++
 export CC=clang
 
-cmake ../ -DCMAKE_INSTALL_PREFIX=$deps_dir -DCMAKE_PREFIX_PATH=$deps_dir -DCMAKE_BUILD_TYPE=${OBAKE_BUILD_TYPE}
+cmake ../ -DCMAKE_INSTALL_PREFIX=$deps_dir -DCMAKE_PREFIX_PATH=$deps_dir -DCMAKE_BUILD_TYPE=$OBAKE_BUILD_TYPE
 make -j2 VERBOSE=1
 
 python -c "import obake; obake.test.run_test_suite()"
