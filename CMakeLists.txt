@@ -151,30 +151,5 @@ endif()
 # pybind11.
 find_package(pybind11 REQUIRED)
 
-# Core module.
-YACMA_PYTHON_MODULE(core
-    src/core.cpp
-    src/type_system.cpp
-    src/utils.cpp
-    src/expose_polynomials.cpp
-    src/expose_polynomials_double.cpp
-    src/expose_polynomials_integer.cpp
-    src/expose_polynomials_rational.cpp
-    src/expose_polynomials_real128.cpp
-    src/expose_polynomials_real.cpp
-)
-
-target_link_libraries(core PRIVATE obake::obake)
-target_include_directories(core PRIVATE "${pybind11_INCLUDE_DIR}" ${Boost_INCLUDE_DIRS})
-target_compile_definitions(core PRIVATE "${pybind11_DEFINITIONS}")
-target_compile_options(core PRIVATE
-    "$<$<CONFIG:DEBUG>:${OBAKE_PY_CXX_FLAGS_DEBUG}>"
-    "$<$<CONFIG:RELEASE>:${OBAKE_PY_CXX_FLAGS_RELEASE}>"
-    "$<$<CONFIG:RelWithDebInfo>:${OBAKE_PY_CXX_FLAGS_RELEASE}>"
-    "$<$<CONFIG:MinSizeRel>:${OBAKE_PY_CXX_FLAGS_RELEASE}>"
-)
-set_target_properties(core PROPERTIES CXX_VISIBILITY_PRESET hidden)
-set_target_properties(core PROPERTIES VISIBILITY_INLINES_HIDDEN TRUE)
-set_property(TARGET core PROPERTY CXX_STANDARD 17)
-set_property(TARGET core PROPERTY CXX_STANDARD_REQUIRED YES)
-set_property(TARGET core PROPERTY CXX_EXTENSIONS NO)
+# Add the module directory.
+add_subdirectory(obake)
