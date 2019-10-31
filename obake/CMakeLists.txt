@@ -1,8 +1,5 @@
 # Configure the version file.
-# NOTE: not sure about the use of CMAKE_SOURCE_DIR here,
-# as I don't think this would not work if obake.py were
-# included as a subproject in another project.
-configure_file("${CMAKE_SOURCE_DIR}/_version.py.in" "${CMAKE_CURRENT_BINARY_DIR}/_version.py" @ONLY)
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/_version.py.in" "${CMAKE_CURRENT_BINARY_DIR}/_version.py" @ONLY)
 
 # Copy the python files in the current binary dir,
 # so that we can import obake from the build dir.
@@ -26,7 +23,10 @@ YACMA_PYTHON_MODULE(core
 target_link_libraries(core PRIVATE obake::obake)
 target_include_directories(core PRIVATE "${pybind11_INCLUDE_DIR}" ${Boost_INCLUDE_DIRS})
 target_compile_definitions(core PRIVATE "${pybind11_DEFINITIONS}")
-if(WIN32 OR TRUE)
+if(WIN32)
+    # NOTE: the imported obake target already brings
+    # the necessary Boost libraries into the link chain.
+    # No need to use the Boost pragmas for auto-linking.
     target_compile_definitions(core PRIVATE "BOOST_ALL_NO_LIB")
 endif()
 target_compile_options(core PRIVATE
