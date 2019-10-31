@@ -1,10 +1,15 @@
 # Configure the version file.
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/_version.py.in" "${CMAKE_CURRENT_BINARY_DIR}/_version.py" @ONLY)
 
+# The list of obake.py's Python files.
+set(OBAKE_PY_PYTHON_FILES __init__.py test.py)
+
 # Copy the python files in the current binary dir,
 # so that we can import obake from the build dir.
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/__init__.py" "${CMAKE_CURRENT_BINARY_DIR}/__init__.py" COPYONLY)
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/test.py" "${CMAKE_CURRENT_BINARY_DIR}/test.py" COPYONLY)
+foreach(OBAKE_PY_PYTHON_FILE ${OBAKE_PY_PYTHON_FILES})
+    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/${OBAKE_PY_PYTHON_FILE}"
+        "${CMAKE_CURRENT_BINARY_DIR}/${OBAKE_PY_PYTHON_FILE}" COPYONLY)
+endforeach()
 
 # Core module.
 YACMA_PYTHON_MODULE(core
