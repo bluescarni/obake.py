@@ -12,7 +12,7 @@ export PATH="$HOME/miniconda/bin:$PATH"
 bash miniconda.sh -b -p $HOME/miniconda
 conda config --add channels conda-forge --force
 
-conda_pkgs="cmake>=3.3 obake-devel boost-cpp python=3.7 pybind11 clang clangdev"
+conda_pkgs="cmake>=3.3 obake-devel boost-cpp python=$OBAKE_PY_VERSION pybind11 clang clangdev"
 
 conda create -q -p $deps_dir -y $conda_pkgs
 source activate $deps_dir
