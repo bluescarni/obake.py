@@ -23,6 +23,8 @@ namespace py = ::pybind11;
 
 ::obake::symbol_set py_object_to_obake_ss(const py::object &);
 
+py::list obake_ss_to_py_list(const ::obake::symbol_set &);
+
 // repr() via std::ostringstream.
 template <typename T>
 inline ::std::string repr_ostr(const T &x)

@@ -4,15 +4,17 @@
 # included as a subproject in another project.
 configure_file("${CMAKE_SOURCE_DIR}/_version.py.in" "${CMAKE_CURRENT_BINARY_DIR}/_version.py" @ONLY)
 
-# Copy the init file in the current binary dir,
+# Copy the python files in the current binary dir,
 # so that we can import obake from the build dir.
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/__init__.py" "${CMAKE_CURRENT_BINARY_DIR}/__init__.py" COPYONLY)
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/test.py" "${CMAKE_CURRENT_BINARY_DIR}/test.py" COPYONLY)
 
 # Core module.
 YACMA_PYTHON_MODULE(core
     core.cpp
     type_system.cpp
     utils.cpp
+    docstrings.cpp
     expose_polynomials.cpp
     expose_polynomials_double.cpp
     expose_polynomials_integer.cpp

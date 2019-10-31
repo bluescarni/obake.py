@@ -44,6 +44,7 @@
 #include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
 
+#include "docstrings.hpp"
 #include "type_system.hpp"
 #include "utils.hpp"
 
@@ -97,6 +98,11 @@ inline void expose_polynomial(py::module &m, type_getter &tg)
     class_inst.def("__len__", &p_type::size);
     class_inst.def("__copy__", &generic_copy_wrapper<p_type>);
     class_inst.def("__deepcopy__", &generic_deepcopy_wrapper<p_type>);
+
+    // Symbol set getter.
+    class_inst.def_property_readonly(
+        "symbol_set", [](const p_type &p) { return obake_ss_to_py_list(p.get_symbol_set()); },
+        symbol_set_docstring().c_str());
 
     // Arithmetics vs self.
     class_inst.def(py::self + py::self);
