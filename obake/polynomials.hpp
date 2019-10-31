@@ -112,6 +112,10 @@ inline void expose_polynomial(py::module &m, type_getter &tg)
     class_inst.def(py::self * py::self);
     class_inst.def(py::self *= py::self);
 
+    // Comparison vs self.
+    class_inst.def(py::self == py::self);
+    class_inst.def(py::self != py::self);
+
     // Interact with the interoperable types.
     hana::for_each(poly_interop_types, [&class_inst](auto t) {
         using cur_t = typename decltype(t)::type;
@@ -134,6 +138,12 @@ inline void expose_polynomial(py::module &m, type_getter &tg)
 
         class_inst.def(py::self / cur_t{});
         class_inst.def(py::self /= cur_t{});
+
+        // Comparisons.
+        class_inst.def(py::self == cur_t{});
+        class_inst.def(cur_t{} == py::self);
+        class_inst.def(py::self != cur_t{});
+        class_inst.def(cur_t{} != py::self);
 
         // Exponentiation.
         class_inst.def("__pow__", [](const p_type &p, const cur_t &x) { return ::obake::pow(p, x); });
