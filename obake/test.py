@@ -43,6 +43,9 @@ class polynomials_test_case(_ut.TestCase):
 
     def runTest(self):
         self.run_basic_tests()
+        self.run_arithmetic_tests()
+        self.run_degree_tests()
+        self.run_trim_tests()
 
     def run_basic_tests(self):
         from itertools import product
@@ -120,6 +123,117 @@ class polynomials_test_case(_ut.TestCase):
             err = cm.exception
             self.assertTrue(
                 "the input parameter 't' is a {}, but it must be a type instead".format(type(3)))
+
+    def run_arithmetic_tests(self):
+        from itertools import product
+        from copy import copy
+        from . import polynomial, make_polynomials, types
+
+        key_cf_list = list(product(self.key_types, self.cf_types))
+
+        for t in key_cf_list:
+            pt = polynomial[t[0], t[1]]
+
+            x, y, z = make_polynomials(pt, 'x', 'y', 'z')
+
+            # Arithmetics with self.
+            self.assertEqual(+x, x)
+            self.assertEqual(x+y, y+x)
+            x2 = copy(x)
+            x2 += y
+            self.assertEqual(-x, x*-1)
+            self.assertEqual(x2, y+x)
+            self.assertEqual(x-y, -(y-x))
+            y2 = copy(y)
+            y2 -= x
+            self.assertEqual(y2, y-x)
+            self.assertEqual(x*x, x**2)
+            z2 = copy(z)
+            z2 *= z
+            self.assertEqual(z2, z**2)
+
+            # Arithmetics with some interoperable types.
+            self.assertEqual(1+x, x+1)
+            self.assertEqual(1+x, x+pt(1))
+            x2 = copy(x)
+            x2 += 1
+            self.assertEqual(x2, x+1)
+
+            self.assertEqual(1-x, -(x-1))
+            self.assertEqual(1-x, -(x-pt(1)))
+            x2 = copy(x)
+            x2 -= 1
+            self.assertEqual(x2, x-1)
+
+            self.assertEqual(2*x, x*2)
+            self.assertEqual(2*x, pt(2)*x)
+            x2 = copy(x)
+            x2 *= 2
+            self.assertEqual(x2, x*2)
+
+            self.assertEqual((2*x)/2, x)
+            x2 = copy(x)
+            x2 *= 2
+            x2 /= 2
+            self.assertEqual(x2, x)
+
+            # Exponentiation.
+            self.assertEqual((2*x)**3, 8*x*x*x)
+            if t[1] == types.double:
+                self.assertEqual(pt(2)**(1./3), 2**(1./3))
+
+    def run_degree_tests(self):
+        from itertools import product
+        from . import polynomial, make_polynomials, degree, p_degree
+
+        key_cf_list = list(product(self.key_types, self.cf_types))
+
+        for t in key_cf_list:
+            pt = polynomial[t[0], t[1]]
+
+            x, y, z = make_polynomials(pt, 'x', 'y', 'z')
+
+            self.assertEqual(degree(pt()), 0)
+            self.assertEqual(degree(pt(3)), 0)
+            self.assertEqual(degree(x), 1)
+            self.assertEqual(degree(x**-1), -1)
+            self.assertEqual(degree(x**-1*y), 0)
+            self.assertEqual(degree(x*y*z), 3)
+            self.assertEqual(degree((x+y+z)**10), 10)
+
+            self.assertEqual(p_degree(pt(), []), 0)
+            self.assertEqual(p_degree(pt(), ['x', 'y']), 0)
+            self.assertEqual(p_degree(pt(3), ['x', 'y']), 0)
+            self.assertEqual(p_degree(x, []), 0)
+            self.assertEqual(p_degree(x, ['x']), 1)
+            self.assertEqual(p_degree(x, ['x', 'y']), 1)
+            self.assertEqual(p_degree(x, ['z']), 0)
+            self.assertEqual(p_degree(x**-1, ['x', 'y']), -1)
+            self.assertEqual(p_degree(x**-1, ['z']), 0)
+            self.assertEqual(p_degree(x**-1*y, ['x']), -1)
+            self.assertEqual(p_degree(x**-1*y, ['x', 'y']), 0)
+            self.assertEqual(p_degree(x*y*z, ['x', 'y']), 2)
+            self.assertEqual(p_degree(x*y*z, ['x', 'y', 'z']), 3)
+            self.assertEqual(p_degree(x*y*z, []), 0)
+            self.assertEqual(p_degree((x+y+z)**10, []), 0)
+            self.assertEqual(p_degree((x+y+z)**10, ['x']), 10)
+            self.assertEqual(p_degree((x+y+z)**10, ['y']), 10)
+            self.assertEqual(p_degree((x+y+z)**10, ['z']), 10)
+
+    def run_trim_tests(self):
+        from itertools import product
+        from . import polynomial, make_polynomials, trim
+
+        key_cf_list = list(product(self.key_types, self.cf_types))
+
+        for t in key_cf_list:
+            pt = polynomial[t[0], t[1]]
+
+            x, y, z = make_polynomials(pt, ['x', 'y', 'z'], 'x', 'y', 'z')
+            self.assertEqual(x.symbol_set, ['x', 'y', 'z'])
+            self.assertEqual(trim(x).symbol_set, ['x'])
+            self.assertEqual(trim((x+y)**10).symbol_set, ['x', 'y'])
+            self.assertEqual(trim((x+y+z)**10).symbol_set, ['x', 'y', 'z'])
 
 
 def run_test_suite():

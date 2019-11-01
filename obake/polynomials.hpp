@@ -105,8 +105,10 @@ inline void expose_polynomial(py::module &m, type_getter &tg)
         symbol_set_docstring().c_str());
 
     // Arithmetics vs self.
+    class_inst.def(+py::self);
     class_inst.def(py::self + py::self);
     class_inst.def(py::self += py::self);
+    class_inst.def(-py::self);
     class_inst.def(py::self - py::self);
     class_inst.def(py::self -= py::self);
     class_inst.def(py::self * py::self);
@@ -167,7 +169,7 @@ inline void expose_polynomial(py::module &m, type_getter &tg)
           [](const p_type &p, const py::iterable &s) { return ::obake::p_degree(p, py_object_to_obake_ss(s)); });
 
     // Trim.
-    m.def("degree", [](const p_type &p) { return ::obake::trim(p); });
+    m.def("trim", [](const p_type &p) { return ::obake::trim(p); });
 
     // Polyomials factory function.
     m.def("_make_polynomials", [](const p_type &, py::args args) {
