@@ -42,7 +42,7 @@ PYBIND11_MODULE(core, m)
     // Init the pybind11 integration for this module.
     ::mppp_pybind11::init();
 
-    m.doc() = "The obake core module";
+    m.doc() = "The core obake module";
 
     // Flag the presence of MPFR/quadmath.
     m.attr("with_mpfr") =

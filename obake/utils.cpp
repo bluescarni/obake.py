@@ -60,4 +60,16 @@ namespace py = ::pybind11;
     return ss;
 }
 
+// Convert a symbol set into a python list.
+py::list obake_ss_to_py_list(const ::obake::symbol_set &ss)
+{
+    py::list retval;
+
+    for (const auto &s : ss) {
+        retval.append(s);
+    }
+
+    return retval;
+}
+
 } // namespace obake_py
