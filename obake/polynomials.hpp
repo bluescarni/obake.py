@@ -44,6 +44,7 @@
 #include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
 
+#include "docstrings.hpp"
 #include "type_system.hpp"
 #include "utils.hpp"
 
@@ -98,13 +99,24 @@ inline void expose_polynomial(py::module &m, type_getter &tg)
     class_inst.def("__copy__", &generic_copy_wrapper<p_type>);
     class_inst.def("__deepcopy__", &generic_deepcopy_wrapper<p_type>);
 
+    // Symbol set getter.
+    class_inst.def_property_readonly(
+        "symbol_set", [](const p_type &p) { return obake_ss_to_py_list(p.get_symbol_set()); },
+        symbol_set_docstring().c_str());
+
     // Arithmetics vs self.
+    class_inst.def(+py::self);
     class_inst.def(py::self + py::self);
     class_inst.def(py::self += py::self);
+    class_inst.def(-py::self);
     class_inst.def(py::self - py::self);
     class_inst.def(py::self -= py::self);
     class_inst.def(py::self * py::self);
     class_inst.def(py::self *= py::self);
+
+    // Comparison vs self.
+    class_inst.def(py::self == py::self);
+    class_inst.def(py::self != py::self);
 
     // Interact with the interoperable types.
     hana::for_each(poly_interop_types, [&class_inst](auto t) {
@@ -129,6 +141,12 @@ inline void expose_polynomial(py::module &m, type_getter &tg)
         class_inst.def(py::self / cur_t{});
         class_inst.def(py::self /= cur_t{});
 
+        // Comparisons.
+        class_inst.def(py::self == cur_t{});
+        class_inst.def(cur_t{} == py::self);
+        class_inst.def(py::self != cur_t{});
+        class_inst.def(cur_t{} != py::self);
+
         // Exponentiation.
         class_inst.def("__pow__", [](const p_type &p, const cur_t &x) { return ::obake::pow(p, x); });
     });
@@ -151,7 +169,7 @@ inline void expose_polynomial(py::module &m, type_getter &tg)
           [](const p_type &p, const py::iterable &s) { return ::obake::p_degree(p, py_object_to_obake_ss(s)); });
 
     // Trim.
-    m.def("degree", [](const p_type &p) { return ::obake::trim(p); });
+    m.def("trim", [](const p_type &p) { return ::obake::trim(p); });
 
     // Polyomials factory function.
     m.def("_make_polynomials", [](const p_type &, py::args args) {

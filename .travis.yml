@@ -10,10 +10,16 @@ branches:
 
 matrix:
   include:
-    - env: OBAKE_BUILD_TYPE="Debug"
+    - env: OBAKE_BUILD_TYPE="Debug" OBAKE_PY_VERSION="3.7"
       os: osx
       osx_image: xcode10.3
-    - env: OBAKE_BUILD_TYPE="Release"
+    - env: OBAKE_BUILD_TYPE="Release" OBAKE_PY_VERSION="3.7"
+      os: osx
+      osx_image: xcode10.3
+    - env: OBAKE_BUILD_TYPE="Debug" OBAKE_PY_VERSION="2.7"
+      os: osx
+      osx_image: xcode10.3
+    - env: OBAKE_BUILD_TYPE="Release" OBAKE_PY_VERSION="2.7"
       os: osx
       osx_image: xcode10.3
 script:
