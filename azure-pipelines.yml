@@ -66,7 +66,7 @@ jobs:
                 -DCMAKE_CXX_COMPILER=clang-cl ^
                 -DCMAKE_PREFIX_PATH=C:\tools\miniconda3\Library ^
                 -DCMAKE_INSTALL_PREFIX=C:\tools\miniconda3\Library ^
-                -DCMAKE_CXX_FLAGS_RELEASE="-Dalign_val_t=size_t"
+                -DCMAKE_CXX_FLAGS="-Dalign_val_t=size_t"
           cmake --build . -- -v
           python -c "import obake; obake.test.run_test_suite()"
         displayName: "Configure, build and test"
