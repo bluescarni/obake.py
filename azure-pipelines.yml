@@ -56,13 +56,12 @@ jobs:
       # Install pybind11.
       - script: |
           setlocal EnableDelayedExpansion
-          call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86_amd64
           git clone https://github.com/bluescarni/pybind11.git
           cd pybind11
           git checkout -b aligned_new --track origin/aligned_new
           mkdir build
           cd build
-          cmake .. -G "Visual Studio 14 2015" -A x64 ^
+          cmake .. -G "Visual Studio 15 2017" -A x64 ^
                    -DCMAKE_PREFIX_PATH=C:\tools\miniconda3\Library ^
                    -DCMAKE_INSTALL_PREFIX=C:\tools\miniconda3\Library ^
                    -DPYBIND11_TEST=NO
