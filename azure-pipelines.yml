@@ -157,7 +157,6 @@ jobs:
           cmake .. -G "Visual Studio 16 2019" ^
                 -DCMAKE_PREFIX_PATH=C:\tools\miniconda3\Library ^
                 -DCMAKE_INSTALL_PREFIX=C:\tools\miniconda3\Library
-          cmake --build . --config RelWithDebInfo
-          cd RelWithDebInfo
+          cmake --build . --config RelWithDebInfo --target install
           python -c "import obake; obake.test.run_test_suite()"
         displayName: "Configure, build and test"

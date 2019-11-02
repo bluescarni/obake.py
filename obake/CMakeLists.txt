@@ -1,36 +1,17 @@
 # Configure the version file.
-# NOTE: do it in the CMAKE_BINARY_DIR,
-# will move it later.
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/_version.py.in" "${CMAKE_BINARY_DIR}/_version.py" @ONLY)
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/_version.py.in" "${CMAKE_CURRENT_BINARY_DIR}/_version.py" @ONLY)
 
 # The list of obake.py's Python files.
 set(OBAKE_PY_PYTHON_FILES __init__.py test.py)
 
-# Try to understand if the generator is multi-configuration
-# (e.g., MSVC).
-get_property(OBAKE_PY_GENERATOR_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
-
-if(OBAKE_PY_GENERATOR_IS_MULTI_CONFIG)
-    message(STATUS "Multi-configuration generator detected.")
-endif()
-
 # Copy the python files in the current binary dir,
 # so that we can import obake from the build dir.
-if(OBAKE_PY_GENERATOR_IS_MULTI_CONFIG)
-    foreach(OBAKE_PY_PYTHON_FILE ${OBAKE_PY_PYTHON_FILES})
-        file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${OBAKE_PY_PYTHON_FILE}"
-            INPUT "${CMAKE_CURRENT_SOURCE_DIR}/${OBAKE_PY_PYTHON_FILE}")
-    endforeach()
-    file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/_version.py"
-        INPUT "${CMAKE_BINARY_DIR}/_version.py")
-else()
-    foreach(OBAKE_PY_PYTHON_FILE ${OBAKE_PY_PYTHON_FILES})
-        file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${OBAKE_PY_PYTHON_FILE}"
-            INPUT "${CMAKE_CURRENT_SOURCE_DIR}/${OBAKE_PY_PYTHON_FILE}")
-    endforeach()
-    file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/_version.py"
-        INPUT "${CMAKE_BINARY_DIR}/_version.py")
-endif()
+# NOTE: importing from the build dir will work
+# only on single-configuration generators.
+foreach(OBAKE_PY_PYTHON_FILE ${OBAKE_PY_PYTHON_FILES})
+    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/${OBAKE_PY_PYTHON_FILE}"
+        "${CMAKE_CURRENT_BINARY_DIR}/${OBAKE_PY_PYTHON_FILE}" COPYONLY)
+endforeach()
 
 # Core module.
 YACMA_PYTHON_MODULE(core
@@ -66,3 +47,16 @@ set_target_properties(core PROPERTIES VISIBILITY_INLINES_HIDDEN TRUE)
 set_property(TARGET core PROPERTY CXX_STANDARD 17)
 set_property(TARGET core PROPERTY CXX_STANDARD_REQUIRED YES)
 set_property(TARGET core PROPERTY CXX_EXTENSIONS NO)
+
+# Setup the installation path.
+set(OBAKE_PY_INSTALL_PATH "${YACMA_PYTHON_MODULES_INSTALL_PATH}/obake")
+
+# Install the core module.
+install(TARGETS core
+    RUNTIME DESTINATION ${OBAKE_PY_INSTALL_PATH}
+    LIBRARY DESTINATION ${OBAKE_PY_INSTALL_PATH}
+)
+
+# Add the Python files.
+install(FILES ${OBAKE_PY_PYTHON_FILES} "${CMAKE_CURRENT_BINARY_DIR}/_version.py"
+    DESTINATION ${OBAKE_PY_INSTALL_PATH})
