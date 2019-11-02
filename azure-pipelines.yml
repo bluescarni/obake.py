@@ -158,6 +158,7 @@ jobs:
                 -DCMAKE_PREFIX_PATH=C:\tools\miniconda3\Library ^
                 -DCMAKE_INSTALL_PREFIX=C:\tools\miniconda3\Library
           cmake --build . --config RelWithDebInfo --target install
-          cd C:\
+          cd ..
+          cd ..
           python -c "import obake; obake.test.run_test_suite()"
         displayName: "Configure, build and test"
