@@ -6,6 +6,8 @@ set(OBAKE_PY_PYTHON_FILES __init__.py test.py)
 
 # Copy the python files in the current binary dir,
 # so that we can import obake from the build dir.
+# NOTE: importing from the build dir will work
+# only on single-configuration generators.
 foreach(OBAKE_PY_PYTHON_FILE ${OBAKE_PY_PYTHON_FILES})
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/${OBAKE_PY_PYTHON_FILE}"
         "${CMAKE_CURRENT_BINARY_DIR}/${OBAKE_PY_PYTHON_FILE}" COPYONLY)
@@ -45,3 +47,16 @@ set_target_properties(core PROPERTIES VISIBILITY_INLINES_HIDDEN TRUE)
 set_property(TARGET core PROPERTY CXX_STANDARD 17)
 set_property(TARGET core PROPERTY CXX_STANDARD_REQUIRED YES)
 set_property(TARGET core PROPERTY CXX_EXTENSIONS NO)
+
+# Setup the installation path.
+set(OBAKE_PY_INSTALL_PATH "${YACMA_PYTHON_MODULES_INSTALL_PATH}/obake")
+
+# Install the core module.
+install(TARGETS core
+    RUNTIME DESTINATION ${OBAKE_PY_INSTALL_PATH}
+    LIBRARY DESTINATION ${OBAKE_PY_INSTALL_PATH}
+)
+
+# Add the Python files.
+install(FILES ${OBAKE_PY_PYTHON_FILES} "${CMAKE_CURRENT_BINARY_DIR}/_version.py"
+    DESTINATION ${OBAKE_PY_INSTALL_PATH})
