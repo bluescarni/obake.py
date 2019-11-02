@@ -4,12 +4,27 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/_version.py.in" "${CMAKE_CURRENT_BIN
 # The list of obake.py's Python files.
 set(OBAKE_PY_PYTHON_FILES __init__.py test.py)
 
+# Try to understand if the generator is multi-configuration
+# (e.g., MSVC).
+get_property(OBAKE_PY_GENERATOR_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+
+if(OBAKE_PY_GENERATOR_IS_MULTI_CONFIG)
+    message(STATUS "Multi-configuration generator detected.")
+endif()
+
 # Copy the python files in the current binary dir,
 # so that we can import obake from the build dir.
-foreach(OBAKE_PY_PYTHON_FILE ${OBAKE_PY_PYTHON_FILES})
+if(OBAKE_PY_GENERATOR_IS_MULTI_CONFIG)
+    foreach(OBAKE_PY_PYTHON_FILE ${OBAKE_PY_PYTHON_FILES})
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/${OBAKE_PY_PYTHON_FILE}"
-        "${CMAKE_CURRENT_BINARY_DIR}/${OBAKE_PY_PYTHON_FILE}" COPYONLY)
-endforeach()
+        "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${OBAKE_PY_PYTHON_FILE}" COPYONLY)
+    endforeach()
+else()
+    foreach(OBAKE_PY_PYTHON_FILE ${OBAKE_PY_PYTHON_FILES})
+        configure_file("${CMAKE_CURRENT_SOURCE_DIR}/${OBAKE_PY_PYTHON_FILE}"
+            "${CMAKE_CURRENT_BINARY_DIR}/${OBAKE_PY_PYTHON_FILE}" COPYONLY)
+    endforeach()
+endif()
 
 # Core module.
 YACMA_PYTHON_MODULE(core
