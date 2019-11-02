@@ -1,5 +1,7 @@
 # Configure the version file.
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/_version.py.in" "${CMAKE_CURRENT_BINARY_DIR}/_version.py" @ONLY)
+# NOTE: do it in the CMAKE_BINARY_DIR,
+# will move it later.
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/_version.py.in" "${CMAKE_BINARY_DIR}/_version.py" @ONLY)
 
 # The list of obake.py's Python files.
 set(OBAKE_PY_PYTHON_FILES __init__.py test.py)
@@ -16,14 +18,18 @@ endif()
 # so that we can import obake from the build dir.
 if(OBAKE_PY_GENERATOR_IS_MULTI_CONFIG)
     foreach(OBAKE_PY_PYTHON_FILE ${OBAKE_PY_PYTHON_FILES})
-    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/${OBAKE_PY_PYTHON_FILE}"
-        "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${OBAKE_PY_PYTHON_FILE}" COPYONLY)
+        file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/${OBAKE_PY_PYTHON_FILE}"
+            INPUT "${CMAKE_CURRENT_SOURCE_DIR}/${OBAKE_PY_PYTHON_FILE}")
     endforeach()
+    file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/_version.py"
+        INPUT "${CMAKE_BINARY_DIR}/_version.py")
 else()
     foreach(OBAKE_PY_PYTHON_FILE ${OBAKE_PY_PYTHON_FILES})
-        configure_file("${CMAKE_CURRENT_SOURCE_DIR}/${OBAKE_PY_PYTHON_FILE}"
-            "${CMAKE_CURRENT_BINARY_DIR}/${OBAKE_PY_PYTHON_FILE}" COPYONLY)
+        file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${OBAKE_PY_PYTHON_FILE}"
+            INPUT "${CMAKE_CURRENT_SOURCE_DIR}/${OBAKE_PY_PYTHON_FILE}")
     endforeach()
+    file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/_version.py"
+        INPUT "${CMAKE_BINARY_DIR}/_version.py")
 endif()
 
 # Core module.
