@@ -23,6 +23,10 @@ jobs:
           choco --version
         displayName: "Install Chocolatey"
 
+      - script: |
+          CALL "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\..\..\VC\vcvarsall.bat" amd64
+        displayName: "Flapper"
+
       # Install Miniconda
       - script: |
           choco install miniconda3 --yes
