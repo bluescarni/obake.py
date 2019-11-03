@@ -37,8 +37,8 @@ if(WIN32)
     target_compile_definitions(core PRIVATE "BOOST_ALL_NO_LIB")
 endif()
 target_compile_options(core PRIVATE
-    "$<$<CONFIG:DEBUG>:${OBAKE_PY_CXX_FLAGS_DEBUG}>"
-    "$<$<CONFIG:RELEASE>:${OBAKE_PY_CXX_FLAGS_RELEASE}>"
+    "$<$<CONFIG:Debug>:${OBAKE_PY_CXX_FLAGS_DEBUG}>"
+    "$<$<CONFIG:Release>:${OBAKE_PY_CXX_FLAGS_RELEASE}>"
     "$<$<CONFIG:RelWithDebInfo>:${OBAKE_PY_CXX_FLAGS_RELEASE}>"
     "$<$<CONFIG:MinSizeRel>:${OBAKE_PY_CXX_FLAGS_RELEASE}>"
 )
