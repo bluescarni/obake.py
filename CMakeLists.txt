@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 3.3.0)
+# NOTE: policy for using the CheckIPOSupported module.
+cmake_policy(SET CMP0069 NEW)
 
 # Set default build type to "Release".
 # NOTE: this should be done before the project command since the latter can set
@@ -15,6 +17,9 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${CMAKE_CURRE
 
 message(STATUS "System name: ${CMAKE_SYSTEM_NAME}")
 message(STATUS "obake.py version: ${obake.py_VERSION}")
+
+option(OBAKE_PY_DISABLE_IPO "Disable IPO." OFF)
+mark_as_advanced(OBAKE_PY_DISABLE_IPO)
 
 # Run the YACMA compiler setup.
 include(YACMACompilerLinkerSettings)

@@ -46,6 +46,12 @@ class polynomials_test_case(_ut.TestCase):
         self.run_arithmetic_tests()
         self.run_degree_tests()
         self.run_trim_tests()
+        self.run_repr_latex_tests()
+        self.run_table_stats_tests()
+        self.run_byte_size_tests()
+        self.run_hash_tests()
+        self.run_subs_tests()
+        self.run_evaluate_tests()
 
     def run_basic_tests(self):
         from itertools import product
@@ -122,7 +128,7 @@ class polynomials_test_case(_ut.TestCase):
                 make_polynomials(3, set(['x', 'y', 'z']), 'x', 'y', 'z')
             err = cm.exception
             self.assertTrue(
-                "the input parameter 't' is a {}, but it must be a type instead".format(type(3)))
+                "the input parameter 't' is a {}, but it must be a type instead".format(type(3)) in str(err))
 
     def run_arithmetic_tests(self):
         from itertools import product
@@ -234,6 +240,182 @@ class polynomials_test_case(_ut.TestCase):
             self.assertEqual(trim(x).symbol_set, ['x'])
             self.assertEqual(trim((x+y)**10).symbol_set, ['x', 'y'])
             self.assertEqual(trim((x+y+z)**10).symbol_set, ['x', 'y', 'z'])
+
+    def run_repr_latex_tests(self):
+        from itertools import product
+        from . import polynomial, make_polynomials
+
+        key_cf_list = list(product(self.key_types, self.cf_types))
+
+        for t in key_cf_list:
+            pt = polynomial[t[0], t[1]]
+
+            x, = make_polynomials(pt, 'x')
+            self.assertTrue(r'$' in x._repr_latex_())
+            self.assertTrue(r'x' in x._repr_latex_())
+
+    def run_table_stats_tests(self):
+        from itertools import product
+        from . import polynomial, make_polynomials
+
+        key_cf_list = list(product(self.key_types, self.cf_types))
+
+        for t in key_cf_list:
+            pt = polynomial[t[0], t[1]]
+
+            x, y, z = make_polynomials(pt, 'x', 'y', 'z')
+            f = (x+y+z)**10
+            self.assertTrue('Total number of terms' in f.table_stats())
+
+    def run_byte_size_tests(self):
+        from itertools import product
+        from . import polynomial, make_polynomials, byte_size
+
+        key_cf_list = list(product(self.key_types, self.cf_types))
+
+        for t in key_cf_list:
+            pt = polynomial[t[0], t[1]]
+
+            x, y, z = make_polynomials(pt, 'x', 'y', 'z')
+            f = (x+y+z)**10
+            self.assertTrue(byte_size(f) > 0)
+
+    def run_hash_tests(self):
+        from itertools import product
+        from . import polynomial, make_polynomials
+
+        key_cf_list = list(product(self.key_types, self.cf_types))
+
+        for t in key_cf_list:
+            pt = polynomial[t[0], t[1]]
+
+            x, = make_polynomials(pt, 'x')
+            self.assertTrue(x.__hash__ is None)
+
+    def run_subs_tests(self):
+        from fractions import Fraction as F
+        from itertools import product
+        from . import polynomial, make_polynomials, subs
+
+        key_cf_list = list(product(self.key_types, self.cf_types))
+
+        for t in key_cf_list:
+            pt = polynomial[t[0], t[1]]
+
+            x, y, z = make_polynomials(pt, 'x', 'y', 'z')
+
+            # Error handling.
+            with self.assertRaises(TypeError) as cm:
+                subs(x, 1)
+            err = cm.exception
+            self.assertTrue(
+                "a substitution/evaluation map must be a dictionary, but it is of type {} instead".format(int) in str(err))
+
+            with self.assertRaises(ValueError) as cm:
+                subs(x, {})
+            err = cm.exception
+            self.assertTrue(
+                "a substitution/evaluation map cannot have a size of zero" in str(err))
+
+            with self.assertRaises(TypeError) as cm:
+                subs(x, {'x': 1, 2: 3})
+            err = cm.exception
+            self.assertTrue(
+                "the keys in a substitution/evaluation map must be strings, but a key of type {} was encountered instead".format(int) in str(err))
+
+            with self.assertRaises(TypeError) as cm:
+                subs(x, {'x': 1, 'y': 3.})
+            err = cm.exception
+            self.assertTrue(
+                "the values in a substitution/evaluation map must be all of the same type, but values of type {} and {} were encountered instead".format(
+                    int, float) in str(err)
+                or "the values in a substitution/evaluation map must be all of the same type, but values of type {} and {} were encountered instead".format(float, int) in str(err))
+
+            # Subs with self.
+            self.assertEqual(subs(x, {'x': y}), y)
+
+            # Subs with scalars.
+            self.assertEqual(subs(x, {'x': 2}), 2)
+            self.assertEqual(subs(x, {'x': 2.}), 2.)
+            self.assertEqual(subs(x, {'x': F(2)}), F(2))
+
+    def run_evaluate_tests(self):
+        from fractions import Fraction as F
+        from itertools import product
+        from . import polynomial, make_polynomials, evaluate, with_mpfr, with_quadmath, types
+
+        try:
+            import mpmath
+            with_mpmath = True
+        except ImportError:
+            with_mpmath = False
+
+        key_cf_list = list(product(self.key_types, self.cf_types))
+
+        for t in key_cf_list:
+            pt = polynomial[t[0], t[1]]
+
+            x, y, z = make_polynomials(pt, 'x', 'y', 'z')
+
+            # Error handling.
+            with self.assertRaises(TypeError) as cm:
+                evaluate(x, 1)
+            err = cm.exception
+            self.assertTrue(
+                "a substitution/evaluation map must be a dictionary, but it is of type {} instead".format(int) in str(err))
+
+            with self.assertRaises(ValueError) as cm:
+                evaluate(x, {})
+            err = cm.exception
+            self.assertTrue(
+                "a substitution/evaluation map cannot have a size of zero" in str(err))
+
+            with self.assertRaises(TypeError) as cm:
+                evaluate(x, {'x': 1, 2: 3})
+            err = cm.exception
+            self.assertTrue(
+                "the keys in a substitution/evaluation map must be strings, but a key of type {} was encountered instead".format(int) in str(err))
+
+            with self.assertRaises(TypeError) as cm:
+                evaluate(x, {'x': 1, 'y': 3.})
+            err = cm.exception
+            self.assertTrue(
+                "the values in a substitution/evaluation map must be all of the same type, but values of type {} and {} were encountered instead".format(
+                    int, float) in str(err)
+                or "the values in a substitution/evaluation map must be all of the same type, but values of type {} and {} were encountered instead".format(float, int) in str(err))
+
+            if with_mpfr and t[1] == types.real:
+                if with_mpmath:
+                    orig_prec = mpmath.mp.prec
+                    mpmath.mp.prec = 256
+                else:
+                    continue
+
+            if with_quadmath and t[1] == types.real128:
+                if with_mpmath:
+                    orig_prec = mpmath.mp.prec
+                    mpmath.mp.prec = 113
+                else:
+                    continue
+
+            # Subs with scalars.
+            self.assertEqual(evaluate(x, {'x': 2}), 2)
+            self.assertEqual(evaluate(x, {'x': 2.}), 2.)
+            self.assertEqual(evaluate(x, {'x': F(2)}), F(2))
+            self.assertEqual(evaluate(x+y, {'x': 2, 'y': 3}), 5)
+            self.assertEqual(evaluate(x-y, {'x': 2, 'y': 3}), -1)
+
+            with self.assertRaises(ValueError) as cm:
+                evaluate(x-y, {'x': 2})
+            err = cm.exception
+            self.assertTrue("does not contain all the symbols in the series'" in str(err))
+
+            # Restore the original mpmath precision if necessary.
+            if with_mpfr and t[1] == types.real and with_mpmath:
+                mpmath.mp.prec = orig_prec
+
+            if with_quadmath and t[1] == types.real128 and with_mpmath:
+                mpmath.mp.prec = orig_prec
 
 
 def run_test_suite():

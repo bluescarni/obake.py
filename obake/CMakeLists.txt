@@ -37,8 +37,8 @@ if(WIN32)
     target_compile_definitions(core PRIVATE "BOOST_ALL_NO_LIB")
 endif()
 target_compile_options(core PRIVATE
-    "$<$<CONFIG:DEBUG>:${OBAKE_PY_CXX_FLAGS_DEBUG}>"
-    "$<$<CONFIG:RELEASE>:${OBAKE_PY_CXX_FLAGS_RELEASE}>"
+    "$<$<CONFIG:Debug>:${OBAKE_PY_CXX_FLAGS_DEBUG}>"
+    "$<$<CONFIG:Release>:${OBAKE_PY_CXX_FLAGS_RELEASE}>"
     "$<$<CONFIG:RelWithDebInfo>:${OBAKE_PY_CXX_FLAGS_RELEASE}>"
     "$<$<CONFIG:MinSizeRel>:${OBAKE_PY_CXX_FLAGS_RELEASE}>"
 )
@@ -47,6 +47,27 @@ set_target_properties(core PROPERTIES VISIBILITY_INLINES_HIDDEN TRUE)
 set_property(TARGET core PROPERTY CXX_STANDARD 17)
 set_property(TARGET core PROPERTY CXX_STANDARD_REQUIRED YES)
 set_property(TARGET core PROPERTY CXX_EXTENSIONS NO)
+
+if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.9.0")
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT _OBAKE_PY_IPO_RESULT OUTPUT _OBAKE_PY_IPO_OUTPUT)
+
+    if (_OBAKE_PY_IPO_RESULT)
+        if (OBAKE_PY_DISABLE_IPO)
+            message(STATUS "IPO is supported, but it has been disabled for this build.")
+        else()
+            message(STATUS "IPO is supported, enabling.")
+            # NOTE: it does not seem like we can use generator
+            # expressions in this property, unfortunately.
+            set_property(TARGET core PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+        endif()
+    else()
+        message(STATUS "IPO is not supported: ${_OBAKE_PY_IPO_OUTPUT}")
+    endif()
+
+    unset(_OBAKE_PY_IPO_RESULT)
+    unset(_OBAKE_PY_IPO_OUTPUT)
+endif()
 
 # Setup the installation path.
 set(OBAKE_PY_INSTALL_PATH "${YACMA_PYTHON_MODULES_INSTALL_PATH}/obake")
