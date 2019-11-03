@@ -13,6 +13,7 @@
 #include <string>
 
 #include <obake/symbols.hpp>
+#include <obake/tex_stream_insert.hpp>
 
 #include <pybind11/pybind11.h>
 
@@ -31,6 +32,17 @@ inline ::std::string repr_ostr(const T &x)
 {
     ::std::ostringstream oss;
     oss << x;
+    return oss.str();
+}
+
+// latex repr.
+template <typename T>
+inline ::std::string repr_latex_ostr(const T &x)
+{
+    ::std::ostringstream oss;
+    oss << '$';
+    ::obake::tex_stream_insert(oss, x);
+    oss << '$';
     return oss.str();
 }
 

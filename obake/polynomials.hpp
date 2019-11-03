@@ -99,6 +99,12 @@ inline void expose_polynomial(py::module &m, type_getter &tg)
     class_inst.def("__copy__", &generic_copy_wrapper<p_type>);
     class_inst.def("__deepcopy__", &generic_deepcopy_wrapper<p_type>);
 
+    // Latex repr.
+    class_inst.def("_repr_latex_", &repr_latex_ostr<p_type>);
+
+    // Table stats.
+    class_inst.def("table_stats", &p_type::table_stats);
+
     // Symbol set getter.
     class_inst.def_property_readonly(
         "symbol_set", [](const p_type &p) { return obake_ss_to_py_list(p.get_symbol_set()); },

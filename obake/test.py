@@ -46,6 +46,8 @@ class polynomials_test_case(_ut.TestCase):
         self.run_arithmetic_tests()
         self.run_degree_tests()
         self.run_trim_tests()
+        self.run_repr_latex_tests()
+        self.run_table_stats_tests()
 
     def run_basic_tests(self):
         from itertools import product
@@ -234,6 +236,32 @@ class polynomials_test_case(_ut.TestCase):
             self.assertEqual(trim(x).symbol_set, ['x'])
             self.assertEqual(trim((x+y)**10).symbol_set, ['x', 'y'])
             self.assertEqual(trim((x+y+z)**10).symbol_set, ['x', 'y', 'z'])
+
+    def run_repr_latex_tests(self):
+        from itertools import product
+        from . import polynomial, make_polynomials
+
+        key_cf_list = list(product(self.key_types, self.cf_types))
+
+        for t in key_cf_list:
+            pt = polynomial[t[0], t[1]]
+
+            x, = make_polynomials(pt, 'x')
+            self.assertTrue(r'$' in x._repr_latex_())
+            self.assertTrue(r'x' in x._repr_latex_())
+
+    def run_table_stats_tests(self):
+        from itertools import product
+        from . import polynomial, make_polynomials
+
+        key_cf_list = list(product(self.key_types, self.cf_types))
+
+        for t in key_cf_list:
+            pt = polynomial[t[0], t[1]]
+
+            x, y, z = make_polynomials(pt, 'x', 'y', 'z')
+            f = (x+y+z)**10
+            self.assertTrue('Total number of terms' in f.table_stats())
 
 
 def run_test_suite():
