@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 3.3.0)
+# NOTE: policy for using the CheckIPOSupported module.
+cmake_policy(SET CMP0069 NEW)
 
 # Set default build type to "Release".
 # NOTE: this should be done before the project command since the latter can set
