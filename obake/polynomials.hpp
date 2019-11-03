@@ -34,6 +34,7 @@
 
 #include <obake/byte_size.hpp>
 #include <obake/math/degree.hpp>
+#include <obake/math/evaluate.hpp>
 #include <obake/math/pow.hpp>
 #include <obake/math/subs.hpp>
 #include <obake/math/trim.hpp>
@@ -166,6 +167,11 @@ inline void expose_polynomial(py::module &m, type_getter &tg)
         // Subs.
         m.def("_subs", [](const cur_t &, const p_type &x, const py::dict &d) {
             return ::obake::subs(x, py_dict_to_obake_sm<cur_t>(d));
+        });
+
+        // Evaluate.
+        m.def("_evaluate", [](const cur_t &, const p_type &x, const py::dict &d) {
+            return ::obake::evaluate(x, py_dict_to_obake_sm<cur_t>(d));
         });
     });
 

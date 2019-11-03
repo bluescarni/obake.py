@@ -45,27 +45,27 @@ def _remove_hash():
 _remove_hash()
 
 
-def _check_subs_map(d):
+def _check_subs_eval_map(d):
     if not isinstance(d, dict):
         raise TypeError(
-            "the substitution map must be a dictionary, but it is of type {} instead".format(type(d)))
+            "a substitution/evaluation map must be a dictionary, but it is of type {} instead".format(type(d)))
 
     if len(d) == 0:
         raise ValueError(
-            "the substitution map cannot have a size of zero".format(type(d)))
+            "a substitution/evaluation map cannot have a size of zero".format(type(d)))
 
     ctype = None
     for k in d:
         if not isinstance(k, str):
             raise TypeError(
-                "the keys in a substitution map must be strings, but a key of type {} was encountered instead".format(type(k)))
+                "the keys in a substitution/evaluation map must be strings, but a key of type {} was encountered instead".format(type(k)))
 
         tdk = type(d[k])
         if ctype is None:
             ctype = tdk
         elif ctype != tdk:
             raise TypeError(
-                "the values in a substitution map must be all of the same type, but values of type {} and {} were encountered instead".format(
+                "the values in a substitution/evaluation map must be all of the same type, but values of type {} and {} were encountered instead".format(
                     ctype, tdk))
 
     return ctype
@@ -74,5 +74,12 @@ def _check_subs_map(d):
 def subs(x, d):
     from .core import _subs
 
-    t = _check_subs_map(d)
+    t = _check_subs_eval_map(d)
     return _subs(t(), x, d)
+
+
+def evaluate(x, d):
+    from .core import _evaluate
+
+    t = _check_subs_eval_map(d)
+    return _evaluate(t(), x, d)
