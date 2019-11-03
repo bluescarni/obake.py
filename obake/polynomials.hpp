@@ -32,8 +32,10 @@
 
 #endif
 
+#include <obake/byte_size.hpp>
 #include <obake/math/degree.hpp>
 #include <obake/math/pow.hpp>
+#include <obake/math/subs.hpp>
 #include <obake/math/trim.hpp>
 #include <obake/polynomials/d_packed_monomial.hpp>
 #include <obake/polynomials/packed_monomial.hpp>
@@ -124,8 +126,13 @@ inline void expose_polynomial(py::module &m, type_getter &tg)
     class_inst.def(py::self == py::self);
     class_inst.def(py::self != py::self);
 
+    // Substitution with self.
+    m.def("_subs", [](const p_type &, const p_type &x, const py::dict &d) {
+        return ::obake::subs(x, py_dict_to_obake_sm<p_type>(d));
+    });
+
     // Interact with the interoperable types.
-    hana::for_each(poly_interop_types, [&class_inst](auto t) {
+    hana::for_each(poly_interop_types, [&class_inst, &m](auto t) {
         using cur_t = typename decltype(t)::type;
 
         // Constructor.
@@ -155,6 +162,11 @@ inline void expose_polynomial(py::module &m, type_getter &tg)
 
         // Exponentiation.
         class_inst.def("__pow__", [](const p_type &p, const cur_t &x) { return ::obake::pow(p, x); });
+
+        // Subs.
+        m.def("_subs", [](const cur_t &, const p_type &x, const py::dict &d) {
+            return ::obake::subs(x, py_dict_to_obake_sm<cur_t>(d));
+        });
     });
 
     // Constructors from polynomials with different coefficients
@@ -168,6 +180,9 @@ inline void expose_polynomial(py::module &m, type_getter &tg)
             class_inst.def(py::init<const ::obake::polynomial<K, cur_cf_t> &>());
         }
     });
+
+    // Byte size.
+    m.def("byte_size", [](const p_type &p) { return ::obake::byte_size(p); });
 
     // Degree.
     m.def("degree", [](const p_type &p) { return ::obake::degree(p); });

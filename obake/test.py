@@ -48,6 +48,9 @@ class polynomials_test_case(_ut.TestCase):
         self.run_trim_tests()
         self.run_repr_latex_tests()
         self.run_table_stats_tests()
+        self.run_byte_size_tests()
+        self.run_hash_tests()
+        self.run_subs_tests()
 
     def run_basic_tests(self):
         from itertools import product
@@ -124,7 +127,7 @@ class polynomials_test_case(_ut.TestCase):
                 make_polynomials(3, set(['x', 'y', 'z']), 'x', 'y', 'z')
             err = cm.exception
             self.assertTrue(
-                "the input parameter 't' is a {}, but it must be a type instead".format(type(3)))
+                "the input parameter 't' is a {}, but it must be a type instead".format(type(3)) in str(err))
 
     def run_arithmetic_tests(self):
         from itertools import product
@@ -262,6 +265,78 @@ class polynomials_test_case(_ut.TestCase):
             x, y, z = make_polynomials(pt, 'x', 'y', 'z')
             f = (x+y+z)**10
             self.assertTrue('Total number of terms' in f.table_stats())
+
+    def run_byte_size_tests(self):
+        from itertools import product
+        from . import polynomial, make_polynomials, byte_size
+
+        key_cf_list = list(product(self.key_types, self.cf_types))
+
+        for t in key_cf_list:
+            pt = polynomial[t[0], t[1]]
+
+            x, y, z = make_polynomials(pt, 'x', 'y', 'z')
+            f = (x+y+z)**10
+            self.assertTrue(byte_size(f) > 0)
+
+    def run_hash_tests(self):
+        from itertools import product
+        from . import polynomial, make_polynomials
+
+        key_cf_list = list(product(self.key_types, self.cf_types))
+
+        for t in key_cf_list:
+            pt = polynomial[t[0], t[1]]
+
+            x, = make_polynomials(pt, 'x')
+            self.assertTrue(x.__hash__ is None)
+
+    def run_subs_tests(self):
+        from fractions import Fraction as F
+        from itertools import product
+        from . import polynomial, make_polynomials, subs
+
+        key_cf_list = list(product(self.key_types, self.cf_types))
+
+        for t in key_cf_list:
+            pt = polynomial[t[0], t[1]]
+
+            x, y, z = make_polynomials(pt, 'x', 'y', 'z')
+
+            # Error handling.
+            with self.assertRaises(TypeError) as cm:
+                subs(x, 1)
+            err = cm.exception
+            self.assertTrue(
+                "the substitution map must be a dictionary, but it is of type {} instead".format(int) in str(err))
+
+            with self.assertRaises(ValueError) as cm:
+                subs(x, {})
+            err = cm.exception
+            self.assertTrue(
+                "the substitution map cannot have a size of zero" in str(err))
+
+            with self.assertRaises(TypeError) as cm:
+                subs(x, {'x': 1, 2: 3})
+            err = cm.exception
+            self.assertTrue(
+                "the keys in a substitution map must be strings, but a key of type {} was encountered instead".format(int) in str(err))
+
+            with self.assertRaises(TypeError) as cm:
+                subs(x, {'x': 1, 'y': 3.})
+            err = cm.exception
+            self.assertTrue(
+                "the values in a substitution map must be all of the same type, but values of type {} and {} were encountered instead".format(
+                    int, float) in str(err)
+                or "the values in a substitution map must be all of the same type, but values of type {} and {} were encountered instead".format(float, int) in str(err))
+
+            # Subs with self.
+            self.assertEqual(subs(x, {'x': y}), y)
+
+            # Subs with scalars.
+            self.assertEqual(subs(x, {'x': 2}), 2)
+            self.assertEqual(subs(x, {'x': 2.}), 2.)
+            self.assertEqual(subs(x, {'x': F(2)}), F(2))
 
 
 def run_test_suite():
