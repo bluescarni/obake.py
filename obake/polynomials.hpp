@@ -34,7 +34,9 @@
 
 #include <obake/byte_size.hpp>
 #include <obake/math/degree.hpp>
+#include <obake/math/diff.hpp>
 #include <obake/math/evaluate.hpp>
+#include <obake/math/integrate.hpp>
 #include <obake/math/pow.hpp>
 #include <obake/math/subs.hpp>
 #include <obake/math/trim.hpp>
@@ -228,6 +230,10 @@ inline void expose_polynomial(py::module &m, type_getter &tg)
 
         return retval;
     });
+
+    // Diff/integrate.
+    m.def("diff", [](const p_type &x, const ::std::string &s) { return ::obake::diff(x, s); });
+    m.def("integrate", [](const p_type &x, const ::std::string &s) { return ::obake::integrate(x, s); });
 
     // Add the current polynomial
     // type to the type getter.
