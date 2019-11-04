@@ -52,6 +52,7 @@ class polynomials_test_case(_ut.TestCase):
         self.run_hash_tests()
         self.run_subs_tests()
         self.run_evaluate_tests()
+        self.run_diff_integrate_tests()
 
     def run_basic_tests(self):
         from itertools import product
@@ -416,6 +417,27 @@ class polynomials_test_case(_ut.TestCase):
 
             if with_quadmath and t[1] == types.real128 and with_mpmath:
                 mpmath.mp.prec = orig_prec
+
+    def run_diff_integrate_tests(self):
+        from itertools import product
+        from . import polynomial, make_polynomials, diff, integrate
+
+        key_cf_list = list(product(self.key_types, self.cf_types))
+
+        for t in key_cf_list:
+            pt = polynomial[t[0], t[1]]
+
+            x, y, z = make_polynomials(pt, 'x', 'y', 'z')
+
+            self.assertEqual(diff(x**2+y,'x'), 2*x)
+            self.assertEqual(diff(x**2+y,'y'), 1)
+            self.assertEqual(integrate(3*x**2+y,'x'), x**3+x*y)
+            self.assertEqual(integrate(3*x**2+2*y,'y'), 3*x**2*y+y**2)
+
+            with self.assertRaises(ValueError) as cm:
+                integrate(x**-1, 'x')
+            err = cm.exception
+            self.assertTrue("would generate a logarithmic term" in str(err))
 
 
 def run_test_suite():
