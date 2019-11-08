@@ -1,5 +1,8 @@
-cmake_minimum_required(VERSION 3.3.0)
-# NOTE: policy for using the CheckIPOSupported module.
+# NOTE: C++17 supported since CMake 3.8.0:
+# https://cmake.org/cmake/help/v3.8/prop_tgt/CXX_STANDARD.html
+cmake_minimum_required(VERSION 3.8.0)
+# NOTE: policy for using the CheckIPOSupported module:
+# https://cmake.org/cmake/help/latest/policy/CMP0069.html
 cmake_policy(SET CMP0069 NEW)
 
 # Set default build type to "Release".
