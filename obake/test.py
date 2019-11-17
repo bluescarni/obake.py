@@ -53,6 +53,7 @@ class polynomials_test_case(_ut.TestCase):
         self.run_subs_tests()
         self.run_evaluate_tests()
         self.run_diff_integrate_tests()
+        self.run_truncate_tests()
 
     def run_basic_tests(self):
         from itertools import product
@@ -409,7 +410,8 @@ class polynomials_test_case(_ut.TestCase):
             with self.assertRaises(ValueError) as cm:
                 evaluate(x-y, {'x': 2})
             err = cm.exception
-            self.assertTrue("does not contain all the symbols in the series'" in str(err))
+            self.assertTrue(
+                "does not contain all the symbols in the series'" in str(err))
 
             # Restore the original mpmath precision if necessary.
             if with_mpfr and t[1] == types.real and with_mpmath:
@@ -429,15 +431,54 @@ class polynomials_test_case(_ut.TestCase):
 
             x, y, z = make_polynomials(pt, 'x', 'y', 'z')
 
-            self.assertEqual(diff(x**2+y,'x'), 2*x)
-            self.assertEqual(diff(x**2+y,'y'), 1)
-            self.assertEqual(integrate(3*x**2+y,'x'), x**3+x*y)
-            self.assertEqual(integrate(3*x**2+2*y,'y'), 3*x**2*y+y**2)
+            self.assertEqual(diff(x**2+y, 'x'), 2*x)
+            self.assertEqual(diff(x**2+y, 'y'), 1)
+            self.assertEqual(integrate(3*x**2+y, 'x'), x**3+x*y)
+            self.assertEqual(integrate(3*x**2+2*y, 'y'), 3*x**2*y+y**2)
 
             with self.assertRaises(ValueError) as cm:
                 integrate(x**-1, 'x')
             err = cm.exception
             self.assertTrue("would generate a logarithmic term" in str(err))
+
+    def run_truncate_tests(self):
+        from itertools import product
+        from . import polynomial, make_polynomials, truncate_degree
+        try:
+            from . import truncate_p_degree
+            has_p_degree = True
+        except ImportError:
+            has_p_degree = False
+
+        key_cf_list = list(product(self.key_types, self.cf_types))
+
+        for t in key_cf_list:
+            pt = polynomial[t[0], t[1]]
+
+            x, y, z = make_polynomials(pt, 'x', 'y', 'z')
+
+            self.assertEqual(truncate_degree((x-y)*(x+y), 2), x**2-y**2)
+            self.assertEqual(truncate_degree((x-y)*(x+y)+x, 1), x)
+            self.assertEqual(truncate_degree((x-y)*(x+y)+x, 0), 0)
+
+            if not has_p_degree:
+                continue
+
+            self.assertEqual(truncate_p_degree((x-y)*(x+y), 2, []), x**2-y**2)
+            self.assertEqual(truncate_p_degree(
+                (x-y)*(x+y), 2, ['x']), x**2-y**2)
+            self.assertEqual(truncate_p_degree(
+                (x-y)*(x+y), 2, ['y']), x**2-y**2)
+            self.assertEqual(truncate_p_degree(
+                (x-y)*(x+y), 2, set(['x', 'y'])), x**2-y**2)
+            self.assertEqual(truncate_p_degree(
+                (x-y)*(x+y), 1, set(['x'])), -y**2)
+            self.assertEqual(truncate_p_degree(
+                (x-y)*(x+y), 1, set(['y'])), x**2)
+            self.assertEqual(truncate_p_degree(
+                (x-y)*(x+y), 1, 'abc'), x**2-y**2)
+            self.assertEqual(truncate_p_degree((x-y)*(x+y)+x, 1, 'xy'), x)
+            self.assertEqual(truncate_p_degree((x-y)*(x+y)+x, 1, 'x'), x-y**2)
 
 
 def run_test_suite():

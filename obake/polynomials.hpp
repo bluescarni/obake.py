@@ -33,6 +33,7 @@
 #endif
 
 #include <obake/byte_size.hpp>
+#include <obake/config.hpp>
 #include <obake/math/degree.hpp>
 #include <obake/math/diff.hpp>
 #include <obake/math/evaluate.hpp>
@@ -40,11 +41,17 @@
 #include <obake/math/pow.hpp>
 #include <obake/math/subs.hpp>
 #include <obake/math/trim.hpp>
+#include <obake/math/truncate_degree.hpp>
 #include <obake/polynomials/d_packed_monomial.hpp>
 #include <obake/polynomials/packed_monomial.hpp>
 #include <obake/polynomials/polynomial.hpp>
 #include <obake/series.hpp>
+#include <obake/symbols.hpp>
 #include <obake/type_name.hpp>
+
+#if (OBAKE_VERSION_MAJOR > 0) || (OBAKE_VERSION_MAJOR == 0 && OBAKE_VERSION_MINOR >= 4)
+#include <obake/math/truncate_p_degree.hpp>
+#endif
 
 #include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
@@ -234,6 +241,18 @@ inline void expose_polynomial(py::module &m, type_getter &tg)
     // Diff/integrate.
     m.def("diff", [](const p_type &x, const ::std::string &s) { return ::obake::diff(x, s); });
     m.def("integrate", [](const p_type &x, const ::std::string &s) { return ::obake::integrate(x, s); });
+
+    // Explicit truncation.
+    using deg_t = decltype(::obake::degree(::std::declval<const p_type &>()));
+    m.def("truncate_degree", [](const p_type &x, const deg_t &n) { return ::obake::truncate_degree(x, n); });
+
+#if (OBAKE_VERSION_MAJOR > 0) || (OBAKE_VERSION_MAJOR == 0 && OBAKE_VERSION_MINOR >= 4)
+    using p_deg_t
+        = decltype(::obake::p_degree(::std::declval<const p_type &>(), ::std::declval<const ::obake::symbol_set &>()));
+    m.def("truncate_p_degree", [](const p_type &x, const p_deg_t &n, const py::iterable &s) {
+        return ::obake::truncate_p_degree(x, n, py_object_to_obake_ss(s));
+    });
+#endif
 
     // Add the current polynomial
     // type to the type getter.
