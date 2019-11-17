@@ -56,9 +56,8 @@ jobs:
       # Install pybind11.
       - script: |
           setlocal EnableDelayedExpansion
-          git clone https://github.com/bluescarni/pybind11.git
+          git clone https://github.com/pybind/pybind11.git
           cd pybind11
-          git checkout -b aligned_new --track origin/aligned_new
           mkdir build
           cd build
           cmake .. -G "Visual Studio 15 2017" -A x64 ^
