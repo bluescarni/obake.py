@@ -28,7 +28,7 @@ YACMA_PYTHON_MODULE(core
 )
 
 target_link_libraries(core PRIVATE obake::obake)
-target_include_directories(core PRIVATE "${pybind11_INCLUDE_DIR}" ${Boost_INCLUDE_DIRS})
+target_include_directories(core SYSTEM PRIVATE "${pybind11_INCLUDE_DIR}" ${Boost_INCLUDE_DIRS})
 target_compile_definitions(core PRIVATE "${pybind11_DEFINITIONS}")
 if(WIN32)
     # NOTE: the imported obake target already brings
