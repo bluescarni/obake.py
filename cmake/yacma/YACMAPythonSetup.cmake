@@ -133,7 +133,7 @@ function(YACMA_PYTHON_MODULE name)
     endif()
 
     # Add the Python include dirs.
-    target_include_directories("${name}" PRIVATE ${YACMA_PYTHON_INCLUDE_DIR})
+    target_include_directories("${name}" SYSTEM PRIVATE ${YACMA_PYTHON_INCLUDE_DIR})
 
     # Link to the Python libs, if necessary.
     if(_YACMA_PYTHON_MODULE_NEED_LINK)
