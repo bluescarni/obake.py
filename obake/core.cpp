@@ -61,6 +61,10 @@ PYBIND11_MODULE(core, m)
 #endif
         ;
 
+    // Export the obake version.
+    m.attr("_obake_version_major") = OBAKE_VERSION_MAJOR;
+    m.attr("_obake_version_minor") = OBAKE_VERSION_MINOR;
+
     // Create the types submodule.
     auto types_submodule = m.def_submodule("types", "The types submodule");
 
@@ -87,9 +91,9 @@ PYBIND11_MODULE(core, m)
     obpy::instantiate_type_tag<::obake::packed_monomial<long long>>(types_submodule, "packed_monomial");
     obpy::instantiate_type_tag<::obake::d_packed_monomial<long long, 8>>(types_submodule, "d_packed_monomial");
 
-    // NOTE: currently pybind11 does not translate
-    // std::overflow_error into OverflowError. Keep an
-    // eye on it if this changes in the future.
+    // NOTE: automatic conversion of std::overflow_error
+    // into OverflowError should be available after pybind11
+    // 2.4.3.
     py::register_exception_translator([](::std::exception_ptr p) {
         try {
             if (p) {

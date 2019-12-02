@@ -442,13 +442,29 @@ class polynomials_test_case(_ut.TestCase):
             self.assertTrue("would generate a logarithmic term" in str(err))
 
     def run_truncate_tests(self):
+        from .core import _obake_version_major, _obake_version_minor
         from itertools import product
         from . import polynomial, make_polynomials, truncate_degree
-        try:
+        if _obake_version_major > 1 or (_obake_version_major == 0 and _obake_version_minor >= 4):
             from . import truncate_p_degree
             has_p_degree = True
-        except ImportError:
+
+            def t_degree(p, d):
+                from copy import deepcopy
+                pc = deepcopy(p)
+                truncate_degree(pc, d)
+                return pc
+
+            def t_p_degree(p, d, s):
+                from copy import deepcopy
+                pc = deepcopy(p)
+                truncate_p_degree(pc, d, s)
+                return pc
+
+        else:
             has_p_degree = False
+
+            t_degree = truncate_degree
 
         key_cf_list = list(product(self.key_types, self.cf_types))
 
@@ -457,28 +473,28 @@ class polynomials_test_case(_ut.TestCase):
 
             x, y, z = make_polynomials(pt, 'x', 'y', 'z')
 
-            self.assertEqual(truncate_degree((x-y)*(x+y), 2), x**2-y**2)
-            self.assertEqual(truncate_degree((x-y)*(x+y)+x, 1), x)
-            self.assertEqual(truncate_degree((x-y)*(x+y)+x, 0), 0)
+            self.assertEqual(t_degree((x-y)*(x+y), 2), x**2-y**2)
+            self.assertEqual(t_degree((x-y)*(x+y)+x, 1), x)
+            self.assertEqual(t_degree((x-y)*(x+y)+x, 0), 0)
 
             if not has_p_degree:
                 continue
 
-            self.assertEqual(truncate_p_degree((x-y)*(x+y), 2, []), x**2-y**2)
-            self.assertEqual(truncate_p_degree(
+            self.assertEqual(t_p_degree((x-y)*(x+y), 2, []), x**2-y**2)
+            self.assertEqual(t_p_degree(
                 (x-y)*(x+y), 2, ['x']), x**2-y**2)
-            self.assertEqual(truncate_p_degree(
+            self.assertEqual(t_p_degree(
                 (x-y)*(x+y), 2, ['y']), x**2-y**2)
-            self.assertEqual(truncate_p_degree(
+            self.assertEqual(t_p_degree(
                 (x-y)*(x+y), 2, set(['x', 'y'])), x**2-y**2)
-            self.assertEqual(truncate_p_degree(
+            self.assertEqual(t_p_degree(
                 (x-y)*(x+y), 1, set(['x'])), -y**2)
-            self.assertEqual(truncate_p_degree(
+            self.assertEqual(t_p_degree(
                 (x-y)*(x+y), 1, set(['y'])), x**2)
-            self.assertEqual(truncate_p_degree(
+            self.assertEqual(t_p_degree(
                 (x-y)*(x+y), 1, 'abc'), x**2-y**2)
-            self.assertEqual(truncate_p_degree((x-y)*(x+y)+x, 1, 'xy'), x)
-            self.assertEqual(truncate_p_degree((x-y)*(x+y)+x, 1, 'x'), x-y**2)
+            self.assertEqual(t_p_degree((x-y)*(x+y)+x, 1, 'xy'), x)
+            self.assertEqual(t_p_degree((x-y)*(x+y)+x, 1, 'x'), x-y**2)
 
 
 def run_test_suite():
