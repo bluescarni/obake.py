@@ -244,14 +244,16 @@ inline void expose_polynomial(py::module &m, type_getter &tg)
 
     // Explicit truncation.
     using deg_t = decltype(::obake::degree(::std::declval<const p_type &>()));
-    m.def("truncate_degree", [](const p_type &x, const deg_t &n) { return ::obake::truncate_degree(x, n); });
-
 #if (OBAKE_VERSION_MAJOR > 0) || (OBAKE_VERSION_MAJOR == 0 && OBAKE_VERSION_MINOR >= 4)
+    m.def("truncate_degree", [](p_type &x, const deg_t &n) { ::obake::truncate_degree(x, n); });
+
     using p_deg_t
         = decltype(::obake::p_degree(::std::declval<const p_type &>(), ::std::declval<const ::obake::symbol_set &>()));
-    m.def("truncate_p_degree", [](const p_type &x, const p_deg_t &n, const py::iterable &s) {
-        return ::obake::truncate_p_degree(x, n, py_object_to_obake_ss(s));
+    m.def("truncate_p_degree", [](p_type &x, const p_deg_t &n, const py::iterable &s) {
+        ::obake::truncate_p_degree(x, n, py_object_to_obake_ss(s));
     });
+#else
+    m.def("truncate_degree", [](const p_type &x, const deg_t &n) { return ::obake::truncate_degree(x, n); });
 #endif
 
     // Add the current polynomial
