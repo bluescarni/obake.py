@@ -60,6 +60,7 @@ class polynomials_test_case(_ut.TestCase):
         from fractions import Fraction as F
         from copy import copy, deepcopy
         from . import polynomial, make_polynomials
+        from .core import _obake_version_major, _obake_version_minor
 
         key_cf_list = list(product(self.key_types, self.cf_types))
 
@@ -75,6 +76,18 @@ class polynomials_test_case(_ut.TestCase):
             self.assertTrue(len(pt(42)) == 1)
             self.assertTrue(pt(42.) == 42.)
             self.assertTrue(pt(F(4, 2)) == 2)
+
+            if _obake_version_major > 1 or (_obake_version_major == 0 and _obake_version_minor >= 4):
+                # Ctor from scalar + symbol set.
+                self.assertTrue(len(pt(42, ["x", "y", "z"])) == 1)
+                self.assertTrue(
+                    pt(42, ["x", "y", "z"]).symbol_set == ["x", "y", "z"])
+                self.assertTrue(pt(42., ["x", "y", "z"]) == 42.)
+                self.assertTrue(
+                    pt(42., ["x", "y", "z"]).symbol_set == ["x", "y", "z"])
+                self.assertTrue(pt(F(4, 2), ["x", "y", "z"]) == 2)
+                self.assertTrue(
+                    pt(F(4, 2), ["x", "y", "z"]).symbol_set == ["x", "y", "z"])
 
             # cpp_name class property.
             self.assertFalse(pt.cpp_name == "")
