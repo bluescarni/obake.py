@@ -207,7 +207,7 @@ inline void expose_polynomial(py::module &m, type_getter &tg)
     // Trim.
     m.def("trim", [](const p_type &p) { return ::obake::trim(p); });
 
-    // Polyomials factory function.
+    // Polynomials factory function.
     m.def("_make_polynomials", [](const p_type &, py::args args) {
         py::list retval;
 
