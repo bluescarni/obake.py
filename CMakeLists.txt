@@ -140,10 +140,12 @@ endif()
 
 # obake.
 # NOTE: put the minimum version in a variable
-# so that we can re-use it in the config-file package
-# machinery below.
+# so that we can re-use it below.
 set (_OBAKE_PY_MIN_OBAKE_VERSION 0.2)
-find_package(obake "${_OBAKE_PY_MIN_OBAKE_VERSION}" REQUIRED)
+find_package(obake REQUIRED)
+if(${obake_VERSION} VERSION_LESS ${_OBAKE_PY_MIN_OBAKE_VERSION})
+    message(FATAL_ERROR "The minimum obake version required by obake.py is ${_OBAKE_PY_MIN_OBAKE_VERSION}, but version ${obake_VERSION} was found instead.")
+endif()
 
 # Boost (header only).
 find_package(Boost 1.65.0 QUIET REQUIRED)

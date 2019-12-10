@@ -147,6 +147,11 @@ inline void expose_polynomial(py::module &m, type_getter &tg)
 
         // Constructor.
         class_inst.def(py::init<const cur_t &>());
+#if (OBAKE_VERSION_MAJOR > 0) || (OBAKE_VERSION_MAJOR == 0 && OBAKE_VERSION_MINOR >= 4)
+        // Constructor with symbol set.
+        class_inst.def(
+            py::init([](const cur_t &c, const py::iterable &s) { return p_type(c, py_object_to_obake_ss(s)); }));
+#endif
 
         // Arithmetics.
         class_inst.def(py::self + cur_t{});
@@ -207,7 +212,7 @@ inline void expose_polynomial(py::module &m, type_getter &tg)
     // Trim.
     m.def("trim", [](const p_type &p) { return ::obake::trim(p); });
 
-    // Polyomials factory function.
+    // Polynomials factory function.
     m.def("_make_polynomials", [](const p_type &, py::args args) {
         py::list retval;
 
