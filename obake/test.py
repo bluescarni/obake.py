@@ -119,7 +119,7 @@ class polynomials_test_case(_ut.TestCase):
             self.assertEqual(z.symbol_set, ['z'])
             self.assertTrue(len(x + y + z) == 3)
 
-            x, y, z = make_polynomials(pt, ['x', 'y', 'z'], 'x', 'y', 'z')
+            x, y, z = make_polynomials(pt, 'x', 'y', 'z', ss=['x', 'y', 'z'])
             self.assertTrue(len(x) == 1)
             self.assertEqual(x.symbol_set, ['x', 'y', 'z'])
             self.assertTrue(len(y) == 1)
@@ -129,7 +129,8 @@ class polynomials_test_case(_ut.TestCase):
             self.assertTrue(len(x + y + z) == 3)
 
             # Try with the symbol set passed in as a Python set.
-            x, y, z = make_polynomials(pt, set(['x', 'y', 'z']), 'x', 'y', 'z')
+            x, y, z = make_polynomials(
+                pt, 'x', 'y', 'z', ss=set(['x', 'y', 'z']))
             self.assertTrue(len(x) == 1)
             self.assertEqual(x.symbol_set, ['x', 'y', 'z'])
             self.assertTrue(len(y) == 1)
@@ -140,10 +141,23 @@ class polynomials_test_case(_ut.TestCase):
 
             # Error handling.
             with self.assertRaises(TypeError) as cm:
-                make_polynomials(3, set(['x', 'y', 'z']), 'x', 'y', 'z')
+                make_polynomials(3, 'x', 'y', 'z', ss=set(['x', 'y', 'z']))
             err = cm.exception
             self.assertTrue(
                 "the input parameter 't' is a {}, but it must be a type instead".format(type(3)) in str(err))
+
+            with self.assertRaises(ValueError) as cm:
+                make_polynomials(pt, 'x', 'y', 'z',
+                                 ss=set(['x', 'y', 'z']), aa=2)
+            err = cm.exception
+            self.assertTrue(
+                "too many keyword arguments (2) were passed to the 'make_polynomials()' function, which accepts at most 1 keyword argument" in str(err))
+
+            with self.assertRaises(ValueError) as cm:
+                make_polynomials(pt, 'x', 'y', 'z', sp=set(['x', 'y', 'z']))
+            err = cm.exception
+            self.assertTrue(
+                "the only keyword argument supported by the 'make_polynomials()' function is 'ss', but the keyword argument 'sp' was passed instead" in str(err))
 
     def run_arithmetic_tests(self):
         from itertools import product
@@ -250,7 +264,7 @@ class polynomials_test_case(_ut.TestCase):
         for t in key_cf_list:
             pt = polynomial[t[0], t[1]]
 
-            x, y, z = make_polynomials(pt, ['x', 'y', 'z'], 'x', 'y', 'z')
+            x, y, z = make_polynomials(pt, 'x', 'y', 'z', ss=['x', 'y', 'z'])
             self.assertEqual(x.symbol_set, ['x', 'y', 'z'])
             self.assertEqual(trim(x).symbol_set, ['x'])
             self.assertEqual(trim((x+y)**10).symbol_set, ['x', 'y'])

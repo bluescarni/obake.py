@@ -213,29 +213,36 @@ inline void expose_polynomial(py::module &m, type_getter &tg)
     m.def("trim", [](const p_type &p) { return ::obake::trim(p); });
 
     // Polynomials factory function.
-    m.def("_make_polynomials", [](const p_type &, py::args args) {
-        py::list retval;
-
-        // Special case: no input arguments.
-        if (py::len(args) == 0u) {
-            return retval;
+    m.def("_make_polynomials", [](const p_type &, py::args args, py::kwargs kwargs) {
+        // Check the kwargs.
+        const auto n_kwargs = py::len(kwargs);
+        if (n_kwargs > 1u) {
+            py_throw(::PyExc_ValueError,
+                     ("too many keyword arguments (" + ::std::to_string(n_kwargs)
+                      + ") were passed to the 'make_polynomials()' function, which accepts at most 1 keyword argument")
+                         .c_str());
+        }
+        if (n_kwargs != 0u && !kwargs.contains("ss")) {
+            py_throw(::PyExc_ValueError, ("the only keyword argument supported by the 'make_polynomials()' function is "
+                                          "'ss', but the keyword argument '"
+                                          + kwargs.begin()->first.cast<::std::string>() + "' was passed instead")
+                                             .c_str());
         }
 
-        auto args_it = ::std::begin(args);
-        const auto args_end = ::std::end(args);
+        py::list retval;
 
-        if (py::isinstance<py::iterable>(*args_it) && !py::isinstance<py::str>(*args_it)) {
-            // If the first argument is a non-string iterable, then
-            // we interpret this as the symbol set argument for make_polynomials().
-            const auto ss = py_object_to_obake_ss(args_it->cast<py::object>());
-            for (++args_it; args_it != args_end; ++args_it) {
-                auto [tmp] = ::obake::make_polynomials<p_type>(ss, args_it->cast<::std::string>());
+        if (n_kwargs == 0u) {
+            // Without symbol set argument.
+            for (const auto &o : args) {
+                auto [tmp] = ::obake::make_polynomials<p_type>(o.cast<::std::string>());
                 retval.append(::std::move(tmp));
             }
         } else {
-            // Otherwise, we use the make_polynomials() overload with all strings.
-            for (; args_it != args_end; ++args_it) {
-                auto [tmp] = ::obake::make_polynomials<p_type>(args_it->cast<::std::string>());
+            // With symbol set argument.
+            const auto ss = py_object_to_obake_ss(kwargs["ss"]);
+
+            for (const auto &o : args) {
+                auto [tmp] = ::obake::make_polynomials<p_type>(ss, o.cast<::std::string>());
                 retval.append(::std::move(tmp));
             }
         }
