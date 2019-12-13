@@ -27,6 +27,9 @@ namespace obake_py
 
 namespace py = ::pybind11;
 
+// Throw a Python exception.
+[[noreturn]] void py_throw(::PyObject *, const char *);
+
 // Convert a generic object into a symbol set.
 ::obake::symbol_set py_object_to_obake_ss(const py::object &);
 

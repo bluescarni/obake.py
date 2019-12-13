@@ -29,6 +29,7 @@
 #include <pybind11/pybind11.h>
 
 #include "type_system.hpp"
+#include "utils.hpp"
 
 namespace obake_py
 {
@@ -122,11 +123,9 @@ namespace
 void type_getter::add_impl(::std::vector<type_tag> &&v, const py::object &o)
 {
     if (m_map.find(v) != m_map.end()) {
-        ::PyErr_SetString(::PyExc_TypeError, ("an instance of the C++ class template '" + m_name
-                                              + "' has already been registered with arguments " + v_ttag_to_str(v))
-                                                 .c_str());
-
-        throw py::error_already_set();
+        py_throw(::PyExc_TypeError, ("an instance of the C++ class template '" + m_name
+                                     + "' has already been registered with arguments " + v_ttag_to_str(v))
+                                        .c_str());
     }
 
     m_map.emplace(::std::move(v), o);
@@ -143,11 +142,9 @@ py::object type_getter::getitem_t(const py::tuple &t) const
 
     const auto it = m_map.find(v);
     if (it == m_map.end()) {
-        ::PyErr_SetString(::PyExc_TypeError, ("no instance of the C++ class template '" + m_name
-                                              + "' has been registered with arguments " + v_ttag_to_str(v))
-                                                 .c_str());
-
-        throw py::error_already_set();
+        py_throw(::PyExc_TypeError, ("no instance of the C++ class template '" + m_name
+                                     + "' has been registered with arguments " + v_ttag_to_str(v))
+                                        .c_str());
     }
 
     return it->second;
