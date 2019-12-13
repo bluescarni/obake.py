@@ -29,7 +29,7 @@ namespace py = ::pybind11;
 void py_throw(::PyObject *type, const char *msg)
 {
     ::PyErr_SetString(type, msg);
-    throw ::pybind11::error_already_set();
+    throw py::error_already_set();
 }
 
 // Convert an arbitrary python object
