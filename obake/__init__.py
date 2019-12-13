@@ -19,14 +19,14 @@ from .core import *
 from . import test
 
 
-def make_polynomials(t, *args):
+def make_polynomials(t, *args, **kwargs):
     from .core import _make_polynomials
 
     if not isinstance(t, type):
         raise TypeError(
             "the input parameter 't' is a {}, but it must be a type instead".format(type(t)))
 
-    return _make_polynomials(t(), *args)
+    return _make_polynomials(t(), *args, **kwargs)
 
 
 def _remove_hash():

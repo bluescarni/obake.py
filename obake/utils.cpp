@@ -24,6 +24,14 @@ namespace obake_py
 
 namespace py = ::pybind11;
 
+// Throw a Python exception of type "type" with associated
+// error message "msg".
+void py_throw(::PyObject *type, const char *msg)
+{
+    ::PyErr_SetString(type, msg);
+    throw py::error_already_set();
+}
+
 // Convert an arbitrary python object
 // into a symbol_set.
 ::obake::symbol_set py_object_to_obake_ss(const py::object &o)
