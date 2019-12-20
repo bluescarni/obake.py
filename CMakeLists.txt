@@ -154,8 +154,8 @@ find_package(Boost 1.65.0 QUIET REQUIRED)
 include(YACMAPythonSetup)
 
 # python version check.
-if(${PYTHON_VERSION_MAJOR} LESS 2 OR (${PYTHON_VERSION_MAJOR} EQUAL 2 AND ${PYTHON_VERSION_MINOR} LESS 7))
-    message(FATAL_ERROR "Minimum supported python version is 2.7.")
+if(${PYTHON_VERSION_MAJOR} LESS 3 OR (${PYTHON_VERSION_MAJOR} EQUAL 3 AND ${PYTHON_VERSION_MINOR} LESS 4))
+    message(FATAL_ERROR "Minimum supported python version is 3.4.")
 endif()
 
 # pybind11.

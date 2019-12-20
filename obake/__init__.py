@@ -8,9 +8,6 @@
 # Public License v. 2.0. If a copy of the MPL was not distributed
 # with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# for python 2.0 compatibility
-from __future__ import absolute_import as _ai
-
 # Version setup.
 from ._version import __version__
 # We import the sub-modules into the root namespace

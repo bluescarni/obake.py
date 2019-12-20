@@ -17,14 +17,6 @@ jobs:
     - run:
         name: Build and test
         command: bash ./tools/circleci_bionic_py37_conda.sh
-  bionic_py27_conda:
-    docker:
-    - image: circleci/buildpack-deps:bionic
-    steps:
-    - checkout
-    - run:
-        name: Build and test
-        command: bash ./tools/circleci_bionic_py27_conda.sh
 
 workflows:
   version: 2
@@ -32,4 +24,3 @@ workflows:
     jobs:
     - bionic_py38_conda
     - bionic_py37_conda
-    - bionic_py27_conda
