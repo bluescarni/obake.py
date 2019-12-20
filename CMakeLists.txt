@@ -21,8 +21,8 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${CMAKE_CURRE
 message(STATUS "System name: ${CMAKE_SYSTEM_NAME}")
 message(STATUS "obake.py version: ${obake.py_VERSION}")
 
-option(OBAKE_PY_DISABLE_IPO "Disable IPO." OFF)
-mark_as_advanced(OBAKE_PY_DISABLE_IPO)
+option(OBAKE_PY_ENABLE_IPO "Enable IPO (requires CMake >= 3.9 and compiler support)." OFF)
+mark_as_advanced(OBAKE_PY_ENABLE_IPO)
 
 # Run the YACMA compiler setup.
 include(YACMACompilerLinkerSettings)

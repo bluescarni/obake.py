@@ -56,24 +56,18 @@ set_property(TARGET core PROPERTY CXX_STANDARD_REQUIRED YES)
 set_property(TARGET core PROPERTY CXX_EXTENSIONS NO)
 
 if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.9.0")
-    include(CheckIPOSupported)
-    check_ipo_supported(RESULT _OBAKE_PY_IPO_RESULT OUTPUT _OBAKE_PY_IPO_OUTPUT)
-
-    if (_OBAKE_PY_IPO_RESULT)
-        if (OBAKE_PY_DISABLE_IPO)
-            message(STATUS "IPO is supported, but it has been disabled for this build.")
-        else()
-            message(STATUS "IPO is supported, enabling.")
-            # NOTE: it does not seem like we can use generator
-            # expressions in this property, unfortunately.
+    if (OBAKE_PY_ENABLE_IPO)
+        include(CheckIPOSupported)
+        check_ipo_supported(RESULT _OBAKE_PY_IPO_RESULT OUTPUT _OBAKE_PY_IPO_OUTPUT)
+        if (_OBAKE_PY_IPO_RESULT)
+            message(STATUS "IPO required and supported, enabling.")
             set_property(TARGET core PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+        else()
+            message(STATUS "IPO was required, but it is not supported by the compiler:\n${_OBAKE_PY_IPO_OUTPUT}")
         endif()
-    else()
-        message(STATUS "IPO is not supported: ${_OBAKE_PY_IPO_OUTPUT}")
+        unset(_OBAKE_PY_IPO_RESULT)
+        unset(_OBAKE_PY_IPO_OUTPUT)
     endif()
-
-    unset(_OBAKE_PY_IPO_RESULT)
-    unset(_OBAKE_PY_IPO_OUTPUT)
 endif()
 
 # Setup the installation path.
