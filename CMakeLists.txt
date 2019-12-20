@@ -21,8 +21,8 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${CMAKE_CURRE
 message(STATUS "System name: ${CMAKE_SYSTEM_NAME}")
 message(STATUS "obake.py version: ${obake.py_VERSION}")
 
-option(OBAKE_PY_DISABLE_IPO "Disable IPO." OFF)
-mark_as_advanced(OBAKE_PY_DISABLE_IPO)
+option(OBAKE_PY_ENABLE_IPO "Enable IPO (requires CMake >= 3.9 and compiler support)." OFF)
+mark_as_advanced(OBAKE_PY_ENABLE_IPO)
 
 # Run the YACMA compiler setup.
 include(YACMACompilerLinkerSettings)
@@ -154,8 +154,8 @@ find_package(Boost 1.65.0 QUIET REQUIRED)
 include(YACMAPythonSetup)
 
 # python version check.
-if(${PYTHON_VERSION_MAJOR} LESS 2 OR (${PYTHON_VERSION_MAJOR} EQUAL 2 AND ${PYTHON_VERSION_MINOR} LESS 7))
-    message(FATAL_ERROR "Minimum supported python version is 2.7.")
+if(${PYTHON_VERSION_MAJOR} LESS 3 OR (${PYTHON_VERSION_MAJOR} EQUAL 3 AND ${PYTHON_VERSION_MINOR} LESS 4))
+    message(FATAL_ERROR "Minimum supported python version is 3.4.")
 endif()
 
 # pybind11.
