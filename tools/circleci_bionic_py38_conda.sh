@@ -14,15 +14,9 @@ export deps_dir=$HOME/local
 export PATH="$HOME/miniconda/bin:$PATH"
 bash miniconda.sh -b -p $HOME/miniconda
 conda config --add channels conda-forge --force
-
 conda_pkgs="cmake>=3.3 boost-cpp python=3.8 pybind11 abseil-cpp mppp backtrace tbb tbb-devel"
-
 conda create -q -p $deps_dir -y $conda_pkgs
 source activate $deps_dir
-
-export deps_dir=$HOME/local
-export PATH="$HOME/miniconda/bin:$PATH"
-export PATH="$deps_dir/bin:$PATH"
 
 # Download obake's GIT head.
 git clone https://github.com/bluescarni/obake.git obake-cpp
@@ -30,7 +24,7 @@ cd obake-cpp
 mkdir build
 cd build
 
-cmake ../ -DCMAKE_INSTALL_PREFIX=$deps_dir -DCMAKE_PREFIX_PATH=$deps_dir -DCMAKE_BUILD_TYPE=Debug -DOBAKE_WITH_LIBBACKTRACE=YES
+cmake ../ -DCMAKE_INSTALL_PREFIX=$deps_dir -DCMAKE_PREFIX_PATH=$deps_dir -DCMAKE_BUILD_TYPE=Debug -DOBAKE_WITH_LIBBACKTRACE=YES -DBoost_NO_BOOST_CMAKE=ON
 make install
 
 cd ..
@@ -40,7 +34,7 @@ cd ..
 mkdir build
 cd build
 
-cmake ../ -DCMAKE_INSTALL_PREFIX=$deps_dir -DCMAKE_PREFIX_PATH=$deps_dir -DCMAKE_BUILD_TYPE=Debug
+cmake ../ -DCMAKE_INSTALL_PREFIX=$deps_dir -DCMAKE_PREFIX_PATH=$deps_dir -DCMAKE_BUILD_TYPE=Debug -DBoost_NO_BOOST_CMAKE=ON
 make VERBOSE=1
 
 python -c "import obake; obake.test.run_test_suite()"
