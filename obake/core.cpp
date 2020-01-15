@@ -62,8 +62,11 @@ PYBIND11_MODULE(core, m)
         ;
 
     // Export the obake version.
-    m.attr("_obake_version_major") = OBAKE_VERSION_MAJOR;
-    m.attr("_obake_version_minor") = OBAKE_VERSION_MINOR;
+    m.attr("_obake_cpp_version_major") = OBAKE_VERSION_MAJOR;
+    m.attr("_obake_cpp_version_minor") = OBAKE_VERSION_MINOR;
+#if OBAKE_VERSION_MAJOR > 0 || (OBAKE_VERSION_MAJOR == 0 && OBAKE_VERSION_MINOR >= 4)
+    m.attr("_obake_cpp_version_patch") = OBAKE_VERSION_PATCH;
+#endif
 
     // Create the types submodule.
     auto types_submodule = m.def_submodule("types", "The types submodule");
