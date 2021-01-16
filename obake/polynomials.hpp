@@ -108,6 +108,7 @@ template <typename K, typename C>
 inline void expose_polynomial(py::module &m, type_getter &tg)
 {
     using p_type = ::obake::polynomial<K, C>;
+    using namespace py::literals;
 
     py::class_<p_type> class_inst(m, ("_exposed_type_" + ::std::to_string(exposed_types_counter++)).c_str());
 
@@ -120,7 +121,8 @@ inline void expose_polynomial(py::module &m, type_getter &tg)
     class_inst.def("__repr__", &repr_ostr<p_type>);
     class_inst.def("__len__", &p_type::size);
     class_inst.def("__copy__", &generic_copy_wrapper<p_type>);
-    class_inst.def("__deepcopy__", &generic_deepcopy_wrapper<p_type>);
+    class_inst.def(
+        "__deepcopy__", [](const p_type &p, py::dict) { return p; }, "memo"_a);
 
     // Latex repr.
     class_inst.def("_repr_latex_", &repr_latex_ostr<p_type>);

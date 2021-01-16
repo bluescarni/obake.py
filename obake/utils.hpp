@@ -82,12 +82,6 @@ inline T generic_copy_wrapper(const T &x)
     return x;
 }
 
-template <typename T>
-inline T generic_deepcopy_wrapper(const T &x, const py::dict &)
-{
-    return x;
-}
-
 } // namespace obake_py
 
 #endif
