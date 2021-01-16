@@ -6,8 +6,7 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include <exception>
-#include <stdexcept>
+#include <cstdint>
 
 #include <mp++/config.hpp>
 #include <mp++/extra/pybind11.hpp>
@@ -64,9 +63,7 @@ PYBIND11_MODULE(core, m)
     // Export the obake version.
     m.attr("_obake_cpp_version_major") = OBAKE_VERSION_MAJOR;
     m.attr("_obake_cpp_version_minor") = OBAKE_VERSION_MINOR;
-#if OBAKE_VERSION_MAJOR > 0 || (OBAKE_VERSION_MAJOR == 0 && OBAKE_VERSION_MINOR >= 4)
     m.attr("_obake_cpp_version_patch") = OBAKE_VERSION_PATCH;
-#endif
 
     // Create the types submodule.
     auto types_submodule = m.def_submodule("types", "The types submodule");
@@ -91,21 +88,21 @@ PYBIND11_MODULE(core, m)
 #if defined(MPPP_WITH_MPFR)
     obpy::instantiate_type_tag<::mppp::real>(types_submodule, "real");
 #endif
-    obpy::instantiate_type_tag<::obake::packed_monomial<long long>>(types_submodule, "packed_monomial");
-    obpy::instantiate_type_tag<::obake::d_packed_monomial<long long, 8>>(types_submodule, "d_packed_monomial");
-
-    // NOTE: automatic conversion of std::overflow_error
-    // into OverflowError should be available after pybind11
-    // 2.4.3.
-    py::register_exception_translator([](::std::exception_ptr p) {
-        try {
-            if (p) {
-                ::std::rethrow_exception(p);
-            }
-        } catch (const ::std::overflow_error &e) {
-            ::PyErr_SetString(::PyExc_OverflowError, e.what());
-        }
-    });
+    obpy::instantiate_type_tag<::obake::packed_monomial<
+#if defined(OBAKE_PACKABLE_INT64)
+        ::std::int64_t
+#else
+        ::std::int32_t
+#endif
+        >>(types_submodule, "packed_monomial");
+    obpy::instantiate_type_tag<::obake::d_packed_monomial<
+#if defined(OBAKE_PACKABLE_INT64)
+        ::std::int64_t
+#else
+        ::std::int32_t
+#endif
+        ,
+        8>>(types_submodule, "d_packed_monomial");
 
     // Expose the polynomials.
     obpy::expose_polynomials(m);

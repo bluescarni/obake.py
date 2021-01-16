@@ -9,6 +9,7 @@
 #ifndef OBAKE_PY_POLYNOMIALS_HPP
 #define OBAKE_PY_POLYNOMIALS_HPP
 
+#include <cstdint>
 #include <iterator>
 #include <string>
 #include <utility>
@@ -42,16 +43,13 @@
 #include <obake/math/subs.hpp>
 #include <obake/math/trim.hpp>
 #include <obake/math/truncate_degree.hpp>
+#include <obake/math/truncate_p_degree.hpp>
 #include <obake/polynomials/d_packed_monomial.hpp>
 #include <obake/polynomials/packed_monomial.hpp>
 #include <obake/polynomials/polynomial.hpp>
 #include <obake/series.hpp>
 #include <obake/symbols.hpp>
 #include <obake/type_name.hpp>
-
-#if (OBAKE_VERSION_MAJOR > 0) || (OBAKE_VERSION_MAJOR == 0 && OBAKE_VERSION_MINOR >= 4)
-#include <obake/math/truncate_p_degree.hpp>
-#endif
 
 #include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
@@ -67,8 +65,21 @@ namespace hana = ::boost::hana;
 namespace py = ::pybind11;
 
 // The monomial types that will be exposed.
-inline constexpr auto poly_key_types
-    = hana::tuple_t<::obake::packed_monomial<long long>, ::obake::d_packed_monomial<long long, 8>>;
+inline constexpr auto poly_key_types = hana::tuple_t<::obake::packed_monomial<
+#if defined(OBAKE_PACKABLE_INT64)
+                                                         ::std::int64_t
+#else
+                                                         ::std::int32_t
+#endif
+                                                         >,
+                                                     ::obake::d_packed_monomial<
+#if defined(OBAKE_PACKABLE_INT64)
+                                                         ::std::int64_t
+#else
+                                                         ::std::int32_t
+#endif
+                                                         ,
+                                                         8>>;
 
 // The coefficient types that will be exposed.
 inline constexpr auto poly_cf_types = hana::tuple_t<double, ::mppp::integer<1>, ::mppp::rational<1>
@@ -147,11 +158,9 @@ inline void expose_polynomial(py::module &m, type_getter &tg)
 
         // Constructor.
         class_inst.def(py::init<const cur_t &>());
-#if (OBAKE_VERSION_MAJOR > 0) || (OBAKE_VERSION_MAJOR == 0 && OBAKE_VERSION_MINOR >= 4)
         // Constructor with symbol set.
         class_inst.def(
             py::init([](const cur_t &c, const py::iterable &s) { return p_type(c, py_object_to_obake_ss(s)); }));
-#endif
 
         // Arithmetics.
         class_inst.def(py::self + cur_t{});
@@ -256,7 +265,6 @@ inline void expose_polynomial(py::module &m, type_getter &tg)
 
     // Explicit truncation.
     using deg_t = decltype(::obake::degree(::std::declval<const p_type &>()));
-#if (OBAKE_VERSION_MAJOR > 0) || (OBAKE_VERSION_MAJOR == 0 && OBAKE_VERSION_MINOR >= 4)
     m.def("truncate_degree", [](p_type &x, const deg_t &n) { ::obake::truncate_degree(x, n); });
 
     using p_deg_t
@@ -264,9 +272,6 @@ inline void expose_polynomial(py::module &m, type_getter &tg)
     m.def("truncate_p_degree", [](p_type &x, const p_deg_t &n, const py::iterable &s) {
         ::obake::truncate_p_degree(x, n, py_object_to_obake_ss(s));
     });
-#else
-    m.def("truncate_degree", [](const p_type &x, const deg_t &n) { return ::obake::truncate_degree(x, n); });
-#endif
 
     // Add the current polynomial
     // type to the type getter.
