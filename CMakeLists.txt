@@ -1,9 +1,6 @@
-# NOTE: C++17 supported since CMake 3.8.0:
-# https://cmake.org/cmake/help/v3.8/prop_tgt/CXX_STANDARD.html
-cmake_minimum_required(VERSION 3.8.0)
-# NOTE: policy for using the CheckIPOSupported module:
-# https://cmake.org/cmake/help/latest/policy/CMP0069.html
-cmake_policy(SET CMP0069 NEW)
+# NOTE: C++20 supported since CMake 3.12.0:
+# https://cmake.org/cmake/help/v3.12/prop_tgt/CXX_STANDARD.html
+cmake_minimum_required(VERSION 3.12.0)
 
 # Set default build type to "Release".
 # NOTE: this should be done before the project command since the latter can set
@@ -21,33 +18,11 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${CMAKE_CURRE
 message(STATUS "System name: ${CMAKE_SYSTEM_NAME}")
 message(STATUS "obake.py version: ${obake.py_VERSION}")
 
-option(OBAKE_PY_ENABLE_IPO "Enable IPO (requires CMake >= 3.9 and compiler support)." OFF)
+option(OBAKE_PY_ENABLE_IPO "Enable IPO (requires compiler support)." OFF)
 mark_as_advanced(OBAKE_PY_ENABLE_IPO)
 
 # Run the YACMA compiler setup.
 include(YACMACompilerLinkerSettings)
-
-# NOTE: on Unix systems, the correct library installation path
-# could be something other than just "lib", such as "lib64",
-# "lib32", etc., depending on platform/configuration. Apparently,
-# CMake provides this information via the GNUInstallDirs module.
-# Let's enable this for now on all Unixes except OSX.
-# NOTE: potentially, this could be applicable to Cygwin as well.
-#
-# https://cmake.org/cmake/help/v3.15/module/GNUInstallDirs.html
-# https://cmake.org/pipermail/cmake/2013-July/055375.html
-if(UNIX AND NOT APPLE)
-    include(GNUInstallDirs)
-    set(_OBAKE_PY_INSTALL_LIBDIR_DEFAULT "${CMAKE_INSTALL_LIBDIR}")
-else()
-    set(_OBAKE_PY_INSTALL_LIBDIR_DEFAULT "lib")
-endif()
-if(NOT OBAKE_PY_INSTALL_LIBDIR)
-    set(OBAKE_PY_INSTALL_LIBDIR "${_OBAKE_PY_INSTALL_LIBDIR_DEFAULT}" CACHE STRING
-        "Library installation directory." FORCE)
-endif()
-mark_as_advanced(OBAKE_PY_INSTALL_LIBDIR)
-message(STATUS "Library installation directory: ${OBAKE_PY_INSTALL_LIBDIR}")
 
 # Assemble the flags.
 set(OBAKE_PY_CXX_FLAGS_DEBUG ${YACMA_CXX_FLAGS} ${YACMA_CXX_FLAGS_DEBUG})
@@ -141,7 +116,7 @@ endif()
 # obake.
 # NOTE: put the minimum version in a variable
 # so that we can re-use it below.
-set (_OBAKE_PY_MIN_OBAKE_VERSION 0.2)
+set (_OBAKE_PY_MIN_OBAKE_VERSION 0.7)
 find_package(obake REQUIRED)
 if(${obake_VERSION} VERSION_LESS ${_OBAKE_PY_MIN_OBAKE_VERSION})
     message(FATAL_ERROR "The minimum obake version required by obake.py is ${_OBAKE_PY_MIN_OBAKE_VERSION}, but version ${obake_VERSION} was found instead.")
@@ -151,15 +126,17 @@ endif()
 find_package(Boost 1.65.0 QUIET REQUIRED)
 
 # python.
-include(YACMAPythonSetup)
-
-# python version check.
-if(${PYTHON_VERSION_MAJOR} LESS 3 OR (${PYTHON_VERSION_MAJOR} EQUAL 3 AND ${PYTHON_VERSION_MINOR} LESS 4))
-    message(FATAL_ERROR "Minimum supported python version is 3.4.")
-endif()
+find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
+message(STATUS "Python3 interpreter: ${Python3_EXECUTABLE}")
+message(STATUS "Python3 installation directory: ${Python3_SITEARCH}")
+set(OBAKE_PY_INSTALL_PATH "" CACHE STRING "obake module installation path")
+mark_as_advanced(OBAKE_PY_INSTALL_PATH)
 
 # pybind11.
 find_package(pybind11 REQUIRED)
+if(${pybind11_VERSION} VERSION_LESS "2.6")
+    message(FATAL_ERROR "pybind11 >= 2.6 is required, but version ${pybind11_VERSION} was found instead.")
+endif()
 
 # Add the module directory.
 add_subdirectory(obake)

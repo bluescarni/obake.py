@@ -14,7 +14,7 @@ foreach(OBAKE_PY_PYTHON_FILE ${OBAKE_PY_PYTHON_FILES})
 endforeach()
 
 # Core module.
-YACMA_PYTHON_MODULE(core
+Python3_add_library(core MODULE WITH_SOABI
     core.cpp
     type_system.cpp
     utils.cpp
@@ -30,12 +30,6 @@ YACMA_PYTHON_MODULE(core
 target_link_libraries(core PRIVATE obake::obake)
 target_include_directories(core SYSTEM PRIVATE "${pybind11_INCLUDE_DIR}" ${Boost_INCLUDE_DIRS})
 target_compile_definitions(core PRIVATE "${pybind11_DEFINITIONS}")
-if(WIN32)
-    # NOTE: the imported obake target already brings
-    # the necessary Boost libraries into the link chain.
-    # No need to use the Boost pragmas for auto-linking.
-    target_compile_definitions(core PRIVATE "BOOST_ALL_NO_LIB")
-endif()
 target_compile_options(core PRIVATE
     "$<$<CONFIG:Debug>:${OBAKE_PY_CXX_FLAGS_DEBUG}>"
     "$<$<CONFIG:Release>:${OBAKE_PY_CXX_FLAGS_RELEASE}>"
@@ -44,41 +38,39 @@ target_compile_options(core PRIVATE
 )
 set_target_properties(core PROPERTIES CXX_VISIBILITY_PRESET hidden)
 set_target_properties(core PROPERTIES VISIBILITY_INLINES_HIDDEN TRUE)
-if(NOT CMAKE_CXX_STANDARD)
-    # The user did not provide the CMAKE_CXX_STANDARD variable,
-    # go with the default (C++17).
-    message(STATUS "Setting the C++ standard version to the default value (17).")
-    set_property(TARGET core PROPERTY CXX_STANDARD 17)
-else()
-    message(STATUS "Using the manually-specified value for the C++ standard version (${CMAKE_CXX_STANDARD}).")
-endif()
-set_property(TARGET core PROPERTY CXX_STANDARD_REQUIRED YES)
+target_compile_features(core PRIVATE cxx_std_20)
 set_property(TARGET core PROPERTY CXX_EXTENSIONS NO)
 
-if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.9.0")
-    if (OBAKE_PY_ENABLE_IPO)
-        include(CheckIPOSupported)
-        check_ipo_supported(RESULT _OBAKE_PY_IPO_RESULT OUTPUT _OBAKE_PY_IPO_OUTPUT)
-        if (_OBAKE_PY_IPO_RESULT)
-            message(STATUS "IPO requested and supported, enabling.")
-            set_property(TARGET core PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-        else()
-            message(STATUS "IPO requested, but it is not supported by the compiler:\n${_OBAKE_PY_IPO_OUTPUT}")
-        endif()
-        unset(_OBAKE_PY_IPO_RESULT)
-        unset(_OBAKE_PY_IPO_OUTPUT)
+if (OBAKE_PY_ENABLE_IPO)
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT _OBAKE_PY_IPO_RESULT OUTPUT _OBAKE_PY_IPO_OUTPUT)
+    if (_OBAKE_PY_IPO_RESULT)
+        message(STATUS "IPO requested and supported, enabling.")
+        set_property(TARGET core PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+    else()
+        message(STATUS "IPO requested, but it is not supported by the compiler:\n${_OBAKE_PY_IPO_OUTPUT}")
     endif()
+    unset(_OBAKE_PY_IPO_RESULT)
+    unset(_OBAKE_PY_IPO_OUTPUT)
 endif()
 
-# Setup the installation path.
-set(OBAKE_PY_INSTALL_PATH "${YACMA_PYTHON_MODULES_INSTALL_PATH}/obake")
+# Installation setup.
+if(OBAKE_PY_INSTALL_PATH STREQUAL "")
+    message(STATUS "obake.py will be installed in the default location: ${Python3_SITEARCH}")
+    set(_OBAKE_PY_INSTALL_DIR "${Python3_SITEARCH}/obake")
+else()
+    message(STATUS "obake.py will be installed in the custom location: ${OBAKE_PY_INSTALL_PATH}")
+    set(_OBAKE_PY_INSTALL_DIR "${OBAKE_PY_INSTALL_PATH}/obake")
+endif()
 
 # Install the core module.
 install(TARGETS core
-    RUNTIME DESTINATION ${OBAKE_PY_INSTALL_PATH}
-    LIBRARY DESTINATION ${OBAKE_PY_INSTALL_PATH}
+    RUNTIME DESTINATION ${_OBAKE_PY_INSTALL_DIR}
+    LIBRARY DESTINATION ${_OBAKE_PY_INSTALL_DIR}
 )
 
 # Add the Python files.
 install(FILES ${OBAKE_PY_PYTHON_FILES} "${CMAKE_CURRENT_BINARY_DIR}/_version.py"
-    DESTINATION ${OBAKE_PY_INSTALL_PATH})
+    DESTINATION ${_OBAKE_PY_INSTALL_DIR})
+
+unset(_OBAKE_PY_INSTALL_DIR)
