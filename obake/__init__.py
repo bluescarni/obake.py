@@ -24,6 +24,36 @@ def make_polynomials(t, *args, **kwargs):
     return _make_polynomials(t(), *args, **kwargs)
 
 
+def make_p_series(t, *args, **kwargs):
+    from .core import _make_p_series
+
+    if not isinstance(t, type):
+        raise TypeError(
+            "the input parameter 't' is a {}, but it must be a type instead".format(type(t)))
+
+    return _make_p_series(t(), *args, **kwargs)
+
+
+def make_p_series_t(t, d, *args, **kwargs):
+    from .core import _make_p_series_t
+
+    if not isinstance(t, type):
+        raise TypeError(
+            "the input parameter 't' is a {}, but it must be a type instead".format(type(t)))
+
+    return _make_p_series_t(t(), d, *args, **kwargs)
+
+
+def make_p_series_p(t, d, tss, *args, **kwargs):
+    from .core import _make_p_series_p
+
+    if not isinstance(t, type):
+        raise TypeError(
+            "the input parameter 't' is a {}, but it must be a type instead".format(type(t)))
+
+    return _make_p_series_p(t(), d, tss, *args, **kwargs)
+
+
 def _remove_hash():
     # Helper to remove the hashing method
     # from exposed series, which are mutable

@@ -11,6 +11,7 @@
 
 #include <cstdint>
 #include <string>
+#include <type_traits>
 
 #include <boost/hana/concat.hpp>
 #include <boost/hana/for_each.hpp>
@@ -35,10 +36,14 @@
 
 #endif
 
+#include <obake/byte_size.hpp>
 #include <obake/config.hpp>
+#include <obake/math/degree.hpp>
 #include <obake/math/evaluate.hpp>
+#include <obake/math/p_degree.hpp>
 #include <obake/math/pow.hpp>
 #include <obake/math/subs.hpp>
+#include <obake/math/trim.hpp>
 #include <obake/polynomials/d_packed_monomial.hpp>
 #include <obake/power_series/power_series.hpp>
 #include <obake/type_name.hpp>
@@ -183,6 +188,147 @@ inline void expose_power_series(py::module &m, type_getter &tg)
         m.def("_evaluate", [](const cur_t &, const p_type &x, const py::dict &d) {
             return ::obake::evaluate(x, py_dict_to_obake_sm<cur_t>(d));
         });
+    });
+
+    // Constructors from power series with different coefficients
+    // (but same key).
+    hana::for_each(p_series_cf_types, [&class_inst](auto t) {
+        using cur_cf_t = typename decltype(t)::type;
+
+        if constexpr (!::std::is_same_v<cur_cf_t, C>) {
+            // NOTE: skip the case cur_cf_t == C (that would be
+            // a copy constructor).
+            class_inst.def(py::init<const ::obake::p_series<K, cur_cf_t> &>());
+        }
+    });
+
+    // Byte size.
+    m.def("byte_size", [](const p_type &p) { return ::obake::byte_size(p); });
+
+    // Degree.
+    m.def("degree", [](const p_type &p) { return ::obake::degree(p); });
+    m.def("p_degree",
+          [](const p_type &p, const py::iterable &s) { return ::obake::p_degree(p, py_object_to_obake_ss(s)); });
+
+    // Trim.
+    m.def("trim", [](const p_type &p) { return ::obake::trim(p); });
+
+    // Power series factory functions.
+    m.def("_make_p_series", [](const p_type &, py::args args, py::kwargs kwargs) {
+        // Check the kwargs.
+        const auto n_kwargs = py::len(kwargs);
+        if (n_kwargs > 1u) {
+            py_throw(::PyExc_ValueError,
+                     ("too many keyword arguments (" + ::std::to_string(n_kwargs)
+                      + ") were passed to the 'make_p_series()' function, which accepts at most 1 keyword argument")
+                         .c_str());
+        }
+        if (n_kwargs != 0u && !kwargs.contains("ss")) {
+            py_throw(::PyExc_ValueError, ("the only keyword argument supported by the 'make_p_series()' function is "
+                                          "'ss', but the keyword argument '"
+                                          + kwargs.begin()->first.cast<::std::string>() + "' was passed instead")
+                                             .c_str());
+        }
+
+        py::list retval;
+
+        if (n_kwargs == 0u) {
+            // Without symbol set argument.
+            for (const auto &o : args) {
+                auto [tmp] = ::obake::make_p_series<p_type>(o.cast<::std::string>());
+                retval.append(::std::move(tmp));
+            }
+        } else {
+            // With symbol set argument.
+            const auto ss = py_object_to_obake_ss(kwargs["ss"]);
+
+            for (const auto &o : args) {
+                auto [tmp] = ::obake::make_p_series<p_type>(ss, o.cast<::std::string>());
+                retval.append(::std::move(tmp));
+            }
+        }
+
+        return retval;
+    });
+
+    // Extract the total truncation degree.
+    using deg_t = decltype(::obake::degree(::std::declval<const p_type &>()));
+
+    m.def("_make_p_series_t", [](const p_type &, deg_t d, py::args args, py::kwargs kwargs) {
+        // Check the kwargs.
+        const auto n_kwargs = py::len(kwargs);
+        if (n_kwargs > 1u) {
+            py_throw(::PyExc_ValueError,
+                     ("too many keyword arguments (" + ::std::to_string(n_kwargs)
+                      + ") were passed to the 'make_p_series_t()' function, which accepts at most 1 keyword argument")
+                         .c_str());
+        }
+        if (n_kwargs != 0u && !kwargs.contains("ss")) {
+            py_throw(::PyExc_ValueError, ("the only keyword argument supported by the 'make_p_series_t()' function is "
+                                          "'ss', but the keyword argument '"
+                                          + kwargs.begin()->first.cast<::std::string>() + "' was passed instead")
+                                             .c_str());
+        }
+
+        py::list retval;
+
+        if (n_kwargs == 0u) {
+            // Without symbol set argument.
+            for (const auto &o : args) {
+                auto [tmp] = ::obake::make_p_series_t<p_type>(d, o.cast<::std::string>());
+                retval.append(::std::move(tmp));
+            }
+        } else {
+            // With symbol set argument.
+            const auto ss = py_object_to_obake_ss(kwargs["ss"]);
+
+            for (const auto &o : args) {
+                auto [tmp] = ::obake::make_p_series_t<p_type>(ss, d, o.cast<::std::string>());
+                retval.append(::std::move(tmp));
+            }
+        }
+
+        return retval;
+    });
+
+    m.def("_make_p_series_p", [](const p_type &, deg_t d, py::object trss, py::args args, py::kwargs kwargs) {
+        // Check the kwargs.
+        const auto n_kwargs = py::len(kwargs);
+        if (n_kwargs > 1u) {
+            py_throw(::PyExc_ValueError,
+                     ("too many keyword arguments (" + ::std::to_string(n_kwargs)
+                      + ") were passed to the 'make_p_series_p()' function, which accepts at most 1 keyword argument")
+                         .c_str());
+        }
+        if (n_kwargs != 0u && !kwargs.contains("ss")) {
+            py_throw(::PyExc_ValueError, ("the only keyword argument supported by the 'make_p_series_p()' function is "
+                                          "'ss', but the keyword argument '"
+                                          + kwargs.begin()->first.cast<::std::string>() + "' was passed instead")
+                                             .c_str());
+        }
+
+        // Transform tss into a symbol set.
+        const auto tss = py_object_to_obake_ss(trss);
+
+        py::list retval;
+
+        if (n_kwargs == 0u) {
+            // Without symbol set argument.
+            for (const auto &o : args) {
+                auto [tmp] = ::obake::make_p_series_p<p_type>(d, tss, o.cast<::std::string>());
+                retval.append(::std::move(tmp));
+            }
+        } else {
+            // With symbol set argument.
+            const auto ss = py_object_to_obake_ss(kwargs["ss"]);
+
+            for (const auto &o : args) {
+                auto [tmp] = ::obake::make_p_series_p<p_type>(ss, d, tss, o.cast<::std::string>());
+                retval.append(::std::move(tmp));
+            }
+        }
+
+        return retval;
     });
 
     // Add the current power series
