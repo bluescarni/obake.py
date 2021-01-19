@@ -80,4 +80,10 @@ py::list obake_ss_to_py_list(const ::obake::symbol_set &ss)
     return retval;
 }
 
+// Get the string representation of an object.
+::std::string str(const py::object &o)
+{
+    return py::cast<std::string>(py::str(o));
+}
+
 } // namespace obake_py

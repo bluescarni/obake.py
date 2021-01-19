@@ -82,6 +82,9 @@ inline T generic_copy_wrapper(const T &x)
     return x;
 }
 
+// Get the string representation of an object.
+::std::string str(const py::object &);
+
 } // namespace obake_py
 
 #endif
