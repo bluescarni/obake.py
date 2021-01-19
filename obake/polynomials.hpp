@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <iterator>
 #include <string>
+#include <type_traits>
 #include <utility>
 
 #include <boost/hana/concat.hpp>
@@ -40,6 +41,7 @@
 #include <obake/math/diff.hpp>
 #include <obake/math/evaluate.hpp>
 #include <obake/math/integrate.hpp>
+#include <obake/math/p_degree.hpp>
 #include <obake/math/pow.hpp>
 #include <obake/math/subs.hpp>
 #include <obake/math/trim.hpp>
