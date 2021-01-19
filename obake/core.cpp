@@ -29,6 +29,7 @@
 #include <pybind11/pybind11.h>
 
 #include "polynomials.hpp"
+#include "power_series.hpp"
 #include "type_system.hpp"
 
 namespace py = ::pybind11;
@@ -97,4 +98,7 @@ PYBIND11_MODULE(core, m)
 
     // Expose the polynomials.
     obpy::expose_polynomials(m);
+
+    // Expose the power series.
+    obpy::expose_power_series(m);
 }

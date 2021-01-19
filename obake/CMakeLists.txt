@@ -19,11 +19,18 @@ Python3_add_library(core MODULE WITH_SOABI
     type_system.cpp
     utils.cpp
     docstrings.cpp
+    # Polynomials.
     expose_polynomials.cpp
     expose_polynomials_double.cpp
     expose_polynomials_rational.cpp
     expose_polynomials_real128.cpp
     expose_polynomials_real.cpp
+    # Power series.
+    expose_power_series.cpp
+    expose_power_series_double.cpp
+    expose_power_series_rational.cpp
+    expose_power_series_real128.cpp
+    expose_power_series_real.cpp
 )
 
 target_link_libraries(core PRIVATE obake::obake)
