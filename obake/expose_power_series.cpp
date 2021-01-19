@@ -21,7 +21,7 @@ namespace py = ::pybind11;
 void expose_power_series(py::module &m)
 {
     // Create the power series type getter.
-    type_getter tg("power_series");
+    type_getter tg("p_series");
 
     // Invoke the exposition functions
     // for the various cf types.
@@ -32,7 +32,7 @@ void expose_power_series(py::module &m)
 
     // Add the power series type getter to the
     // python module.
-    m.attr("power_series") = tg;
+    m.attr("p_series") = tg;
 }
 
 } // namespace obake_py
