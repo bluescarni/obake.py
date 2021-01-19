@@ -21,7 +21,6 @@ Python3_add_library(core MODULE WITH_SOABI
     docstrings.cpp
     expose_polynomials.cpp
     expose_polynomials_double.cpp
-    expose_polynomials_integer.cpp
     expose_polynomials_rational.cpp
     expose_polynomials_real128.cpp
     expose_polynomials_real.cpp

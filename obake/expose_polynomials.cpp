@@ -26,7 +26,6 @@ void expose_polynomials(py::module &m)
     // Invoke the exposition functions
     // for the various cf types.
     expose_polynomials_double(m, tg);
-    expose_polynomials_integer(m, tg);
     expose_polynomials_rational(m, tg);
     expose_polynomials_real128(m, tg);
     expose_polynomials_real(m, tg);

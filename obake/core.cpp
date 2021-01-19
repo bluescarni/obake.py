@@ -10,7 +10,6 @@
 
 #include <mp++/config.hpp>
 #include <mp++/extra/pybind11.hpp>
-#include <mp++/integer.hpp>
 #include <mp++/rational.hpp>
 
 #if defined(MPPP_WITH_MPFR)
@@ -26,7 +25,6 @@
 #endif
 
 #include <obake/polynomials/d_packed_monomial.hpp>
-#include <obake/polynomials/packed_monomial.hpp>
 
 #include <pybind11/pybind11.h>
 
@@ -80,7 +78,6 @@ PYBIND11_MODULE(core, m)
 
     // Instantiate the type tags.
     obpy::instantiate_type_tag<double>(types_submodule, "double");
-    obpy::instantiate_type_tag<::mppp::integer<1>>(types_submodule, "integer");
     obpy::instantiate_type_tag<::mppp::rational<1>>(types_submodule, "rational");
 #if defined(MPPP_WITH_QUADMATH)
     obpy::instantiate_type_tag<::mppp::real128>(types_submodule, "real128");
@@ -88,13 +85,7 @@ PYBIND11_MODULE(core, m)
 #if defined(MPPP_WITH_MPFR)
     obpy::instantiate_type_tag<::mppp::real>(types_submodule, "real");
 #endif
-    obpy::instantiate_type_tag<::obake::packed_monomial<
-#if defined(OBAKE_PACKABLE_INT64)
-        ::std::int64_t
-#else
-        ::std::int32_t
-#endif
-        >>(types_submodule, "packed_monomial");
+
     obpy::instantiate_type_tag<::obake::d_packed_monomial<
 #if defined(OBAKE_PACKABLE_INT64)
         ::std::int64_t

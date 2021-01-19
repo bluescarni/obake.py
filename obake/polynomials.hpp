@@ -14,6 +14,7 @@
 #include <string>
 #include <utility>
 
+#include <boost/hana/concat.hpp>
 #include <boost/hana/for_each.hpp>
 #include <boost/hana/tuple.hpp>
 
@@ -45,7 +46,6 @@
 #include <obake/math/truncate_degree.hpp>
 #include <obake/math/truncate_p_degree.hpp>
 #include <obake/polynomials/d_packed_monomial.hpp>
-#include <obake/polynomials/packed_monomial.hpp>
 #include <obake/polynomials/polynomial.hpp>
 #include <obake/series.hpp>
 #include <obake/symbols.hpp>
@@ -65,24 +65,17 @@ namespace hana = ::boost::hana;
 namespace py = ::pybind11;
 
 // The monomial types that will be exposed.
-inline constexpr auto poly_key_types = hana::tuple_t<::obake::packed_monomial<
+inline constexpr auto poly_key_types = hana::tuple_t<::obake::d_packed_monomial<
 #if defined(OBAKE_PACKABLE_INT64)
-                                                         ::std::int64_t
+    ::std::int64_t
 #else
-                                                         ::std::int32_t
+    ::std::int32_t
 #endif
-                                                         >,
-                                                     ::obake::d_packed_monomial<
-#if defined(OBAKE_PACKABLE_INT64)
-                                                         ::std::int64_t
-#else
-                                                         ::std::int32_t
-#endif
-                                                         ,
-                                                         8>>;
+    ,
+    8>>;
 
 // The coefficient types that will be exposed.
-inline constexpr auto poly_cf_types = hana::tuple_t<double, ::mppp::integer<1>, ::mppp::rational<1>
+inline constexpr auto poly_cf_types = hana::tuple_t<double, ::mppp::rational<1>
 #if defined(MPPP_WITH_QUADMATH)
                                                     ,
                                                     ::mppp::real128
@@ -94,7 +87,8 @@ inline constexpr auto poly_cf_types = hana::tuple_t<double, ::mppp::integer<1>, 
                                                     >;
 
 // The types with which we want polynomials to interoperate.
-inline constexpr auto poly_interop_types = poly_cf_types;
+// NOTE: we add integer so that we can interoperate with Python ints.
+inline constexpr auto poly_interop_types = hana::concat(hana::tuple_t<::mppp::integer<1>>, poly_cf_types);
 
 #if defined(__clang__)
 
@@ -289,7 +283,6 @@ inline void expose_polynomial(py::module &m, type_getter &tg)
 void expose_polynomials(py::module &);
 
 void expose_polynomials_double(py::module &, type_getter &);
-void expose_polynomials_integer(py::module &, type_getter &);
 void expose_polynomials_rational(py::module &, type_getter &);
 void expose_polynomials_real128(py::module &, type_getter &);
 void expose_polynomials_real(py::module &, type_getter &);

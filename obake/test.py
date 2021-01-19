@@ -29,13 +29,13 @@ class polynomials_test_case(_ut.TestCase):
 
         _ut.TestCase.__init__(self)
 
-        self.cf_types = [types.double, types.integer, types.rational]
+        self.cf_types = [types.double, types.rational]
         if with_mpfr:
             self.cf_types.append(types.real)
         if with_quadmath:
             self.cf_types.append(types.real128)
 
-        self.key_types = [types.packed_monomial, types.d_packed_monomial]
+        self.key_types = [types.d_packed_monomial]
 
     def runTest(self):
         self.run_basic_tests()
