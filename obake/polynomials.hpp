@@ -10,7 +10,6 @@
 #define OBAKE_PY_POLYNOMIALS_HPP
 
 #include <cstdint>
-#include <iterator>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -49,7 +48,6 @@
 #include <obake/math/truncate_p_degree.hpp>
 #include <obake/polynomials/d_packed_monomial.hpp>
 #include <obake/polynomials/polynomial.hpp>
-#include <obake/series.hpp>
 #include <obake/symbols.hpp>
 #include <obake/type_name.hpp>
 

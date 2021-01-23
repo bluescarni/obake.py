@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <string>
 #include <type_traits>
+#include <utility>
 
 #include <boost/hana/concat.hpp>
 #include <boost/hana/for_each.hpp>
@@ -39,11 +40,15 @@
 #include <obake/byte_size.hpp>
 #include <obake/config.hpp>
 #include <obake/math/degree.hpp>
+#include <obake/math/diff.hpp>
 #include <obake/math/evaluate.hpp>
+#include <obake/math/integrate.hpp>
 #include <obake/math/p_degree.hpp>
 #include <obake/math/pow.hpp>
 #include <obake/math/subs.hpp>
 #include <obake/math/trim.hpp>
+#include <obake/math/truncate_degree.hpp>
+#include <obake/math/truncate_p_degree.hpp>
 #include <obake/polynomials/d_packed_monomial.hpp>
 #include <obake/power_series/power_series.hpp>
 #include <obake/type_name.hpp>
@@ -130,19 +135,17 @@ inline void expose_power_series(py::module &m, type_getter &tg)
     class_inst.def(-py::self);
     class_inst.def(py::self - py::self);
     class_inst.def(py::self -= py::self);
-    // TODO
-    // class_inst.def(py::self * py::self);
-    // class_inst.def(py::self *= py::self);
+    class_inst.def(py::self * py::self);
+    class_inst.def(py::self *= py::self);
 
     // Comparison vs self.
     class_inst.def(py::self == py::self);
     class_inst.def(py::self != py::self);
 
     // Substitution with self.
-    // TODO
-    // m.def("_subs", [](const p_type &, const p_type &x, const py::dict &d) {
-    //     return ::obake::subs(x, py_dict_to_obake_sm<p_type>(d));
-    // });
+    m.def("_subs", [](const p_type &, const p_type &x, const py::dict &d) {
+        return ::obake::subs(x, py_dict_to_obake_sm<p_type>(d));
+    });
 
     // Interact with the interoperable types.
     hana::for_each(p_series_interop_types, [&class_inst, &m](auto t) {
@@ -329,6 +332,16 @@ inline void expose_power_series(py::module &m, type_getter &tg)
         }
 
         return retval;
+    });
+
+    // Diff/integrate.
+    m.def("diff", [](const p_type &x, const ::std::string &s) { return ::obake::diff(x, s); });
+    m.def("integrate", [](const p_type &x, const ::std::string &s) { return ::obake::integrate(x, s); });
+
+    // Explicit truncation.
+    m.def("truncate_degree", [](p_type &x, const deg_t &n) { ::obake::truncate_degree(x, n); });
+    m.def("truncate_p_degree", [](p_type &x, const deg_t &n, const py::iterable &s) {
+        ::obake::truncate_p_degree(x, n, py_object_to_obake_ss(s));
     });
 
     // Add the current power series
