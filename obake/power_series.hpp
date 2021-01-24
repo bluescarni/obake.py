@@ -13,6 +13,7 @@
 #include <string>
 #include <type_traits>
 #include <utility>
+#include <variant>
 
 #include <boost/hana/concat.hpp>
 #include <boost/hana/for_each.hpp>
@@ -52,6 +53,7 @@
 #include <obake/polynomials/d_packed_monomial.hpp>
 #include <obake/power_series/power_series.hpp>
 #include <obake/type_name.hpp>
+#include <obake/type_traits.hpp>
 
 #include "docstrings.hpp"
 #include "type_system.hpp"
@@ -343,6 +345,42 @@ inline void expose_power_series(py::module &m, type_getter &tg)
     m.def("truncate_p_degree", [](p_type &x, const deg_t &n, const py::iterable &s) {
         ::obake::truncate_p_degree(x, n, py_object_to_obake_ss(s));
     });
+
+    // Truncation getter.
+    m.def(
+        "get_truncation",
+        [](const p_type &x) {
+            return ::std::visit(
+                [](const auto &v) -> py::object {
+                    using type = ::obake::remove_cvref_t<decltype(v)>;
+
+                    if constexpr (::std::is_same_v<type, ::obake::power_series::detail::no_truncation>) {
+                        return py::none{};
+                    } else if constexpr (::std::is_same_v<type, deg_t>) {
+                        return py::cast(v);
+                    } else {
+                        return py::make_tuple(py::cast(v.first), obake_ss_to_py_list(v.second));
+                    }
+                },
+                ::obake::get_truncation(x));
+        },
+        "x"_a);
+
+    // Unset truncation.
+    m.def(
+        "unset_truncation", [](p_type &x) { ::obake::unset_truncation(x); }, "x"_a);
+
+    // Set truncation.
+    m.def(
+        "set_truncation",
+        [](p_type &x, const deg_t &d, const py::object &ss) {
+            if (ss.is_none()) {
+                ::obake::set_truncation(x, d);
+            } else {
+                ::obake::set_truncation(x, d, py_object_to_obake_ss(ss));
+            }
+        },
+        "x"_a, "d"_a, "ss"_a = py::none{});
 
     // Add the current power series
     // type to the type getter.
