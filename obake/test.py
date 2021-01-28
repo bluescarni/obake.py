@@ -35,7 +35,7 @@ class polynomials_test_case(_ut.TestCase):
         if with_quadmath:
             self.cf_types.append(types.real128)
 
-        self.key_types = [types.d_packed_monomial]
+        self.key_types = [types.d_laurent_monomial]
 
     def runTest(self):
         self.run_basic_tests()

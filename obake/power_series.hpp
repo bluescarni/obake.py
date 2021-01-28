@@ -39,7 +39,6 @@
 #endif
 
 #include <obake/byte_size.hpp>
-#include <obake/config.hpp>
 #include <obake/math/degree.hpp>
 #include <obake/math/diff.hpp>
 #include <obake/math/evaluate.hpp>
@@ -66,14 +65,7 @@ namespace hana = ::boost::hana;
 namespace py = ::pybind11;
 
 // The monomial types that will be exposed.
-inline constexpr auto p_series_key_types = hana::tuple_t<::obake::d_packed_monomial<
-#if defined(OBAKE_PACKABLE_INT64)
-    ::std::int64_t
-#else
-    ::std::int32_t
-#endif
-    ,
-    8>>;
+inline constexpr auto p_series_key_types = hana::tuple_t<::obake::d_laurent_monomial>;
 
 // The coefficient types that will be exposed.
 inline constexpr auto p_series_cf_types = hana::tuple_t<double, ::mppp::rational<1>

@@ -87,14 +87,7 @@ PYBIND11_MODULE(core, m)
     obpy::instantiate_type_tag<::mppp::real>(types_submodule, "real");
 #endif
 
-    obpy::instantiate_type_tag<::obake::d_packed_monomial<
-#if defined(OBAKE_PACKABLE_INT64)
-        ::std::int64_t
-#else
-        ::std::int32_t
-#endif
-        ,
-        8>>(types_submodule, "d_packed_monomial");
+    obpy::instantiate_type_tag<::obake::d_laurent_monomial>(types_submodule, "d_laurent_monomial");
 
     // Expose the polynomials.
     obpy::expose_polynomials(m);
